@@ -8,11 +8,19 @@
 		<version>3.3.4</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
+	<modules>
+		<module>inventory</module>
+		<module>product</module>
+		<module>coupon</module>
+		<module>order</module>
+		<module>user</module>
+	</modules>
 	<groupId>com.zhixian.mall</groupId>
 	<artifactId>mall</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>mall</name>
 	<description>mall</description>
+	<packaging>pom</packaging>
 	<url/>
 	<licenses>
 		<license/>
@@ -115,10 +123,6 @@
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
 			<artifactId>spring-integration-redis</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.integration</groupId>
-			<artifactId>spring-integration-security</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.springframework.integration</groupId>
