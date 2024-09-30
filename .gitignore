@@ -36,5 +36,6 @@ build/
 **/mvnw.cmd
 **/.mvn
 
-*-dev.yml
-*-shared.yml
+*.dev.yml
+*.shared.yml
+
