@@ -1,21 +1,12 @@
-/**
- * Copyright (c) 2016-2019 人人开源 All rights reserved.
- *
- * https://www.renren.io
- *
- * 版权所有，侵权必究！
- */
-
 package io.renren.modules.app.controller;
-
 
 import io.renren.common.utils.R;
 import io.renren.common.validator.ValidatorUtils;
 import io.renren.modules.app.form.LoginForm;
 import io.renren.modules.app.service.UserService;
 import io.renren.modules.app.utils.JwtUtils;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -32,10 +23,12 @@ import java.util.Map;
  */
 @RestController
 @RequestMapping("/app")
-@Api("APP登录接口")
+@Tag(name = "APP登录接口", description = "App login and authorization API")
 public class AppLoginController {
+
     @Autowired
     private UserService userService;
+
     @Autowired
     private JwtUtils jwtUtils;
 
@@ -43,8 +36,8 @@ public class AppLoginController {
      * 登录
      */
     @PostMapping("login")
-    @ApiOperation("登录")
-    public R login(@RequestBody LoginForm form){
+    @Operation(summary = "登录", description = "Handles user login and returns a JWT token")
+    public R login(@RequestBody LoginForm form) {
         //表单校验
         ValidatorUtils.validateEntity(form);
 
@@ -60,5 +53,4 @@ public class AppLoginController {
 
         return R.ok(map);
     }
-
 }

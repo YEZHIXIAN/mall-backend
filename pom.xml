@@ -16,7 +16,8 @@
 		<module>order</module>
 		<module>user</module>
 		<module>common</module>
-	</modules>
+        <module>gateway</module>
+    </modules>
 	<groupId>com.zhixian.mall</groupId>
 	<artifactId>mall</artifactId>
 	<version>0.0.1-SNAPSHOT</version>

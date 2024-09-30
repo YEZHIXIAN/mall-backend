@@ -1,21 +1,26 @@
 server:
-  port: 5000
+  port: 88
 
 spring:
-  application:
-    name: inventory
-  profiles:
-    active: dev
-  datasource:
-    username: root
-    password: ${mysql.password}
-    url: ${mysql.url}
-    driver-class-name: com.mysql.cj.jdbc.Driver
   config:
     import:
       - 'consul:'
       - 'optional:classpath:application-shared.yml'
+  application:
+    name: gateway
   cloud:
+    gateway:
+      routes:
+        - id: product
+          uri: lb://product
+          predicates:
+            - Path=/product/**
+        - id: admin
+          uri: lb://renren-fast
+          predicates:
+            - Path=/**
+          filters:
+            - RewritePath=/(?<segment>.*), /renren-fast/${segment}
     consul:
       host: ${VM.host}
       port: 8500
@@ -36,9 +41,3 @@ management:
   endpoint:
     health:
       show-details: always
-
-mybatis-plus:
-  mapper-locations: classpath:/mapper/**/*.xml
-  global-config:
-    db-config:
-      id-type: auto

@@ -1,0 +1,3 @@
+mysql:
+  url: jdbc:mysql://172.30.103.222:3306/mall_sms?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+  password: root
