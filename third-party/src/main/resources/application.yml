@@ -1,16 +1,13 @@
 server:
-  port: 13000
+  port: 15000
+
+
 
 spring:
   application:
-    name: product
+    name: third-party
   profiles:
     active: dev
-  datasource:
-    username: root
-    password: ${mysql.password}
-    url: ${mysql.url}
-    driver-class-name: com.mysql.cj.jdbc.Driver
   config:
     import:
       - 'consul:'
@@ -29,5 +26,5 @@ spring:
         format: yaml
         default-context:
           - global
-          - product
+          - third-party
         prefixes: config

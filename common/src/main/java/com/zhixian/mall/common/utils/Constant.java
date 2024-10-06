@@ -8,7 +8,7 @@
 
 package com.zhixian.mall.common.utils;
 
-import com.zhixian.mall.common.validator.group.AliyunGroup;
+import com.zhixian.mall.common.validator.group.AwsGroup;
 import com.zhixian.mall.common.validator.group.QcloudGroup;
 import com.zhixian.mall.common.validator.group.QiniuGroup;
 
@@ -117,7 +117,7 @@ public class Constant {
         /**
          * 阿里云
          */
-        ALIYUN(2, AliyunGroup.class),
+        ALIYUN(2, AwsGroup.class),
         /**
          * 腾讯云
          */

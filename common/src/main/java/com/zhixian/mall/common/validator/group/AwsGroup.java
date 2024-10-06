@@ -13,5 +13,5 @@ package com.zhixian.mall.common.validator.group;
  *
  * @author Mark sunlightcs@gmail.com
  */
-public interface AliyunGroup {
+public interface AwsGroup {
 }

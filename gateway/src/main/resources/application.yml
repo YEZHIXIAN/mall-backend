@@ -11,10 +11,16 @@ spring:
   cloud:
     gateway:
       routes:
+        - id: third-party
+          uri: lb://third-party
+          predicates:
+            - Path=/third-party/s3/**
+
         - id: product
           uri: lb://product
           predicates:
             - Path=/product/**
+
         - id: admin
           uri: lb://renren-fast
           predicates:

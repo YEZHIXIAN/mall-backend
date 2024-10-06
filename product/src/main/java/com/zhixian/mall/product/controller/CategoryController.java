@@ -63,9 +63,9 @@ public class CategoryController {
     /**
      * 修改
      */
-    @RequestMapping("/update")
-    public R update(@RequestBody CategoryEntity category){
-		categoryService.updateById(category);
+    @RequestMapping("/update/sort")
+    public R update(@RequestBody List<CategoryEntity> categories){
+		categoryService.updateBatchById(categories);
 
         return R.ok();
     }
@@ -74,10 +74,10 @@ public class CategoryController {
      * 删除
      */
     @RequestMapping("/delete")
-    public R delete(@RequestBody Long[] catIds){
+    public R delete(@RequestBody List<Long> catIds){
 
         // 1. Check whether the categories are used elsewhere
-		categoryService.removeCategoryByIds(Arrays.asList(catIds));
+		categoryService.removeCategoryByIds(catIds);
 
         return R.ok();
     }
