@@ -3,6 +3,7 @@ package com.zhixian.mall.product.controller;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.zhixian.mall.product.service.impl.CategoryServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,6 +30,8 @@ import com.zhixian.mall.common.utils.R;
 public class AttrGroupController {
     @Autowired
     private AttrGroupService attrGroupService;
+    @Autowired
+    private CategoryServiceImpl categoryService;
 
     /**
      * 列表
@@ -47,7 +50,9 @@ public class AttrGroupController {
     @RequestMapping("/info/{attrGroupId}")
     public R info(@PathVariable("attrGroupId") Long attrGroupId){
 		AttrGroupEntity attrGroup = attrGroupService.getById(attrGroupId);
-
+        Long catelogId = attrGroup.getCatelogId();
+        Long[] catelogPath = categoryService.findCatelogPath(catelogId);
+        attrGroup.setCatelogPath(catelogPath);
         return R.ok().put("attrGroup", attrGroup);
     }
 

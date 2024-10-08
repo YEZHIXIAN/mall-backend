@@ -61,7 +61,16 @@ public class CategoryController {
     }
 
     /**
-     * 修改
+     * 级联修改所有关联数据
+     */
+    @RequestMapping("/update")
+    public R update(@RequestBody CategoryEntity category){
+        categoryService.updateCascade(category);
+        return R.ok();
+    }
+
+    /**
+     * 修改排序
      */
     @RequestMapping("/update/sort")
     public R update(@RequestBody List<CategoryEntity> categories){

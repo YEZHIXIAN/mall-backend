@@ -1,11 +1,10 @@
 package com.zhixian.mall.product.service.impl;
 
+import com.zhixian.mall.product.service.CategoryBrandRelationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -17,10 +16,14 @@ import com.zhixian.mall.common.utils.Query;
 import com.zhixian.mall.product.dao.CategoryDao;
 import com.zhixian.mall.product.entity.CategoryEntity;
 import com.zhixian.mall.product.service.CategoryService;
+import org.springframework.transaction.annotation.Transactional;
 
 
 @Service("categoryService")
 public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity> implements CategoryService {
+
+    @Autowired
+    CategoryBrandRelationService categoryBrandRelationService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -40,7 +43,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         // 2. Build tree
         return entities.stream()
                 .filter(category -> category.getParentCid() == 0)
-                .peek(firstLevelCategory -> firstLevelCategory.setSubcategories(getSubcategories(firstLevelCategory, entities)))
+                .peek(firstLevelCategory -> firstLevelCategory.setChildren(getSubcategories(firstLevelCategory, entities)))
                 .sorted(Comparator.comparingInt(CategoryEntity::getSort))
                 .collect(Collectors.toList());
     }
@@ -60,9 +63,34 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     private List<CategoryEntity> getSubcategories(CategoryEntity root, List<CategoryEntity> all) {
         return all.stream()
                 .filter(category -> Objects.equals(category.getParentCid(), root.getCatId()))
-                .peek(subcategory -> subcategory.setSubcategories(getSubcategories(subcategory, all)))
+                .peek(subcategory -> subcategory.setChildren(getSubcategories(subcategory, all)))
                 .sorted(Comparator.comparingInt(CategoryEntity::getSort))
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 找到catelogId的完整路径
+     * @param catelogId
+     * @return
+     */
+    public Long[] findCatelogPath(Long catelogId) {
+        List<Long> paths = new ArrayList<>();
+        findParentPath(catelogId, paths);
+        return paths.toArray(new Long[0]);
+    }
+
+    @Transactional
+    @Override
+    public void updateCascade(CategoryEntity category) {
+        this.updateById(category);
+        categoryBrandRelationService.updateCategory(category.getCatId(), category.getName());
+    }
+
+    private void findParentPath(Long catelogId, List<Long> paths) {
+        CategoryEntity byId = this.getById(catelogId);
+        paths.add(0, byId.getCatId());
+        if (byId.getParentCid() != 0) {
+            findParentPath(byId.getParentCid(), paths);
+        }
+    }
 }
