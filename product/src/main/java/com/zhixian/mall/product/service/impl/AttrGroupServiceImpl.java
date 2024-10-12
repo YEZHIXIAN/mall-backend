@@ -36,22 +36,16 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
         String key = (String) params.get("key");
         QueryWrapper<AttrGroupEntity> wrapper = new QueryWrapper<AttrGroupEntity>();
         if (!StringUtils.isNullOrEmpty(key)) {
-            wrapper.and(obj -> obj.eq("attr_group_id", key).or().like("attr_group_name", key));
+            wrapper.and(obj -> obj.eq("attr_id", key).or().like("attr_name", key));
         }
 
-        if (catelogId == 0) {
-            page = this.page(
-                    new Query<AttrGroupEntity>().getPage(params),
-                    wrapper
-            );
-        }
-        else {
+        if (catelogId != 0) {
             wrapper.eq("catelog_id", catelogId);
-            page = this.page(
-                    new Query<AttrGroupEntity>().getPage(params),
-                    wrapper
-            );
         }
+        page = this.page(
+                new Query<AttrGroupEntity>().getPage(params),
+                wrapper
+        );
         return new PageUtils(page);
     }
 
