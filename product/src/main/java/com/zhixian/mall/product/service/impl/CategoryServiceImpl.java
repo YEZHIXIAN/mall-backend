@@ -86,7 +86,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         categoryBrandRelationService.updateCategory(category.getCatId(), category.getName());
     }
 
-    private void findParentPath(Long catelogId, List<Long> paths) {
+    public void findParentPath(Long catelogId, List<Long> paths) {
         CategoryEntity byId = this.getById(catelogId);
         paths.add(0, byId.getCatId());
         if (byId.getParentCid() != 0) {
