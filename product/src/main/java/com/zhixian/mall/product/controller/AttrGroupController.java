@@ -1,20 +1,18 @@
 package com.zhixian.mall.product.controller;
 
-import java.util.Arrays;
-import java.util.Map;
-
-import com.zhixian.mall.product.service.impl.CategoryServiceImpl;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.zhixian.mall.product.entity.AttrGroupEntity;
-import com.zhixian.mall.product.service.AttrGroupService;
 import com.zhixian.mall.common.utils.PageUtils;
 import com.zhixian.mall.common.utils.R;
+import com.zhixian.mall.product.entity.AttrEntity;
+import com.zhixian.mall.product.entity.AttrGroupEntity;
+import com.zhixian.mall.product.service.AttrGroupService;
+import com.zhixian.mall.product.service.impl.AttrServiceImpl;
+import com.zhixian.mall.product.service.impl.CategoryServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 
 
@@ -28,11 +26,25 @@ import com.zhixian.mall.common.utils.R;
 @RestController
 @RequestMapping("product/attrgroup")
 public class AttrGroupController {
+
     @Autowired
     private AttrGroupService attrGroupService;
+
     @Autowired
     private CategoryServiceImpl categoryService;
+  @Autowired
+  private AttrServiceImpl attrService;
 
+    /**
+     * 查询属性分组下的关联属性
+     * @param attrgroupId 属性分组id
+     * @return 该属性分组下的关联属性
+     */
+    @GetMapping("/{attrgroupId}/attr/relation")
+    public R attrRelation(@PathVariable("attrgroupId") Long attrgroupId){
+        List<AttrEntity> attrs = attrService.getRelationAttr(attrgroupId);
+        return R.ok().put("data", attrs);
+    }
     /**
      * 列表
      */

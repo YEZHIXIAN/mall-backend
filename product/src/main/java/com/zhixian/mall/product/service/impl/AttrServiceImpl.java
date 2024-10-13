@@ -16,6 +16,7 @@ import com.zhixian.mall.product.service.AttrAttrgroupRelationService;
 import com.zhixian.mall.product.service.AttrGroupService;
 import com.zhixian.mall.product.service.AttrService;
 import com.zhixian.mall.product.service.CategoryService;
+import com.zhixian.mall.product.vo.AttrGroupRelationVo;
 import com.zhixian.mall.product.vo.AttrResponseVo;
 import com.zhixian.mall.product.vo.AttrVo;
 import org.springframework.beans.BeanUtils;
@@ -40,6 +41,7 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
 
   @Autowired
   CategoryService categoryService;
+
 
   @Override
   public PageUtils queryPage(Map<String, Object> params) {
@@ -172,17 +174,43 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
       relationEntity.setAttrGroupId(attr.getAttrGroupId());
       relationEntity.setAttrId(attr.getAttrId());
 
-      int count = relationService.count(new QueryWrapper<AttrAttrgroupRelationEntity>()
-          .eq("attr_id", attr.getAttrId()));
+      int count = relationService.count(
+          new QueryWrapper<AttrAttrgroupRelationEntity>()
+          .eq("attr_id", attr.getAttrId())
+      );
 
       if (count > 0) {
         relationService.update(
             relationEntity,
-            new UpdateWrapper<AttrAttrgroupRelationEntity>()
-                .eq("attr_id", attr.getAttrId()));
-      } else {
+            new UpdateWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attr.getAttrId())
+        );
+      }
+      else {
         relationService.save(relationEntity);
       }
     }
+  }
+
+  @Override
+  public List<AttrEntity> getRelationAttr(Long attrgroupId) {
+    List<AttrAttrgroupRelationEntity> relations = relationService.list(
+        new QueryWrapper<AttrAttrgroupRelationEntity>()
+            .eq("attr_group_id", attrgroupId));
+
+    List<Long> attrIds = relations.stream().map(
+        AttrAttrgroupRelationEntity::getAttrId)
+        .collect(Collectors.toList());
+    return (List<AttrEntity>) this.listByIds(attrIds);
+  }
+
+  @Override
+  public void deleteRelation(AttrGroupRelationVo[] vos) {
+    List.of(vos).forEach(vo -> {
+      relationService.remove(
+          new QueryWrapper<AttrAttrgroupRelationEntity>()
+              .eq("attr_id", vo.getAttrId())
+              .eq("attr_group_id", vo.getAttrGroupId())
+      );
+    });
   }
 }

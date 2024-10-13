@@ -3,9 +3,11 @@ package com.zhixian.mall.product.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.zhixian.mall.common.utils.PageUtils;
 import com.zhixian.mall.product.entity.AttrEntity;
+import com.zhixian.mall.product.vo.AttrGroupRelationVo;
 import com.zhixian.mall.product.vo.AttrResponseVo;
 import com.zhixian.mall.product.vo.AttrVo;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -26,5 +28,9 @@ public interface AttrService extends IService<AttrEntity> {
     AttrResponseVo getAttrInfo(Long attrId);
 
     void updateAttr(AttrVo attr);
+
+    List<AttrEntity> getRelationAttr(Long attrgroupId);
+
+    void deleteRelation(AttrGroupRelationVo[] vos);
 }
 

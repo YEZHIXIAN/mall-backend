@@ -3,6 +3,7 @@ package com.zhixian.mall.product.controller;
 import com.zhixian.mall.common.utils.PageUtils;
 import com.zhixian.mall.common.utils.R;
 import com.zhixian.mall.product.service.AttrService;
+import com.zhixian.mall.product.vo.AttrGroupRelationVo;
 import com.zhixian.mall.product.vo.AttrResponseVo;
 import com.zhixian.mall.product.vo.AttrVo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +82,16 @@ public class AttrController {
   @RequestMapping("/delete")
   public R delete(@RequestBody Long[] attrIds) {
     attrService.removeByIds(Arrays.asList(attrIds));
+
+    return R.ok();
+  }
+
+  /**
+   * 删除关联属性分组
+   */
+  @RequestMapping("/relation/delete")
+  public R deleteRelation(@RequestBody AttrGroupRelationVo[] vos) {
+    attrService.deleteRelation(vos);
 
     return R.ok();
   }
