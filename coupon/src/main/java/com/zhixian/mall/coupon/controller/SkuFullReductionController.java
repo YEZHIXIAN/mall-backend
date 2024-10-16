@@ -1,19 +1,13 @@
 package com.zhixian.mall.coupon.controller;
 
-import java.util.Arrays;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
+import com.zhixian.mall.common.to.SkuReductionTo;
+import com.zhixian.mall.common.utils.R;
 import com.zhixian.mall.coupon.entity.SkuFullReductionEntity;
 import com.zhixian.mall.coupon.service.SkuFullReductionService;
-import com.zhixian.mall.common.utils.PageUtils;
-import com.zhixian.mall.common.utils.R;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
 
 
 
@@ -27,17 +21,18 @@ import com.zhixian.mall.common.utils.R;
 @RestController
 @RequestMapping("coupon/skufullreduction")
 public class SkuFullReductionController {
+
     @Autowired
     private SkuFullReductionService skuFullReductionService;
 
     /**
      * 列表
      */
-    @RequestMapping("/list")
-    public R list(@RequestParam Map<String, Object> params){
-        PageUtils page = skuFullReductionService.queryPage(params);
+    @PostMapping("/saveInfo")
+    public R saveSkuReduction(@RequestBody SkuReductionTo skuReductionTo) {
 
-        return R.ok().put("page", page);
+        skuFullReductionService.saveSkuReduction(skuReductionTo);
+        return R.ok();
     }
 
 

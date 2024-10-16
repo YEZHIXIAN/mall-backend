@@ -1,5 +1,5 @@
 server:
-  port: 9000
+  port: 14000
 
 spring:
   application:
@@ -27,18 +27,7 @@ spring:
         enabled: true
         profile-separator: '-'
         format: yaml
-
-mybatis-plus:
-  mapper-locations: classpath:/mapper/**/*.xml
-  global-config:
-    db-config:
-      id-type: auto
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
-  endpoint:
-    health:
-      show-details: always
+        default-context:
+          - global
+          - coupon
+        prefixes: config
