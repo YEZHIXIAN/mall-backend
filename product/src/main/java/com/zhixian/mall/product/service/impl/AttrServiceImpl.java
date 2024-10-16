@@ -86,7 +86,7 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
             wrapper.eq("catelog_id", catelogId);
         }
 
-        String key = params.get("key").toString();
+        String key = params.get("key") != null ? params.get("key").toString() : "";
         if (!key.isEmpty()) {
             wrapper.and(obj -> obj.eq("catelog_id", key).or().like("attr_group_name", key));
 

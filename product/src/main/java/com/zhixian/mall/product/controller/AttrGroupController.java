@@ -9,6 +9,7 @@ import com.zhixian.mall.product.service.AttrGroupService;
 import com.zhixian.mall.product.service.impl.AttrServiceImpl;
 import com.zhixian.mall.product.service.impl.CategoryServiceImpl;
 import com.zhixian.mall.product.vo.AttrGroupRelationVo;
+import com.zhixian.mall.product.vo.AttrGroupWithAttrsVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -63,6 +64,18 @@ public class AttrGroupController {
                             @RequestParam Map<String, Object> params) {
         PageUtils page = attrService.getNoRelationAttr(attrgroupId, params);
         return R.ok().put("data", page);
+    }
+
+    /**
+     * Retrieves the attribute groups along with their attributes for a specified catalog ID.
+     *
+     * @param catelogId The ID of the catalog to retrieve attribute groups and their attributes from.
+     * @return An instance of {@link R} containing the attribute groups and their attributes for the specified catalog ID.
+     */
+    @GetMapping("/{catelogId}/withattr")
+    public R getAttrGroupWithAttrs(@PathVariable("catelogId") Long catelogId) {
+        List<AttrGroupWithAttrsVo> vos = attrGroupService.getAttrGroupWithAttrsByCatelogId(catelogId);
+        return R.ok().put("data", vos);
     }
 
     /**

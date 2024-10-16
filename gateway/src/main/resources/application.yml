@@ -11,6 +11,11 @@ spring:
   cloud:
     gateway:
       routes:
+        - id: user
+          uri: lb://user
+          predicates:
+            - Path=/member/**
+
         - id: third-party
           uri: lb://third-party
           predicates:

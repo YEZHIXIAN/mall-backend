@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: user
+  profiles:
+    active: dev
   datasource:
     username: root
     password: ${mysql.password}
@@ -25,19 +27,8 @@ spring:
         enabled: true
         profile-separator: '-'
         format: yaml
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
-  endpoint:
-    health:
-      show-details: always
-
-mybatis-plus:
-  mapper-locations: classpath:/mapper/**/*.xml
-  global-config:
-    db-config:
-      id-type: auto
+        default-context:
+          - global
+          - user
+        prefixes: config
 
