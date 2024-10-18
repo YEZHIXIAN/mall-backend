@@ -1,19 +1,14 @@
 package com.zhixian.mall.product.controller;
 
-import java.util.Arrays;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.zhixian.mall.product.entity.SkuInfoEntity;
-import com.zhixian.mall.product.service.SkuInfoService;
 import com.zhixian.mall.common.utils.PageUtils;
 import com.zhixian.mall.common.utils.R;
+import com.zhixian.mall.product.entity.SkuInfoEntity;
+import com.zhixian.mall.product.service.SkuInfoService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.Map;
 
 
 
@@ -27,6 +22,7 @@ import com.zhixian.mall.common.utils.R;
 @RestController
 @RequestMapping("product/skuinfo")
 public class SkuInfoController {
+
     @Autowired
     private SkuInfoService skuInfoService;
 
@@ -35,7 +31,7 @@ public class SkuInfoController {
      */
     @RequestMapping("/list")
     public R list(@RequestParam Map<String, Object> params){
-        PageUtils page = skuInfoService.queryPage(params);
+        PageUtils page = skuInfoService.queryPageByCondition(params);
 
         return R.ok().put("page", page);
     }

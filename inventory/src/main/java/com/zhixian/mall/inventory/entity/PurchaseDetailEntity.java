@@ -2,11 +2,10 @@ package com.zhixian.mall.inventory.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-
-import java.math.BigDecimal;
-import java.io.Serializable;
-import java.util.Date;
 import lombok.Data;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * 
@@ -21,7 +20,7 @@ public class PurchaseDetailEntity implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * 
+	 * 采购项id
 	 */
 	@TableId
 	private Long id;

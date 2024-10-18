@@ -1,5 +1,5 @@
 server:
-  port: 5000
+  port: 12000
 
 spring:
   application:
@@ -27,18 +27,9 @@ spring:
         enabled: true
         profile-separator: '-'
         format: yaml
+        default-context:
+          - global
+          - inventory
+        prefixes: config
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
-  endpoint:
-    health:
-      show-details: always
 
-mybatis-plus:
-  mapper-locations: classpath:/mapper/**/*.xml
-  global-config:
-    db-config:
-      id-type: auto

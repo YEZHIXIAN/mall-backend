@@ -1,34 +1,26 @@
 package com.zhixian.mall.inventory.controller;
 
-import java.util.Arrays;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.zhixian.mall.inventory.entity.WareInfoEntity;
-import com.zhixian.mall.inventory.service.WareInfoService;
 import com.zhixian.mall.common.utils.PageUtils;
 import com.zhixian.mall.common.utils.R;
+import com.zhixian.mall.inventory.entity.WareInfoEntity;
+import com.zhixian.mall.inventory.service.WareInfoService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.Map;
 
 
 
 /**
  * 仓库信息
- *
- * @author zhixian
- * @email raininininin@gmail.com
- * @date 2024-09-23 10:46:15
  */
 @RestController
 @RequestMapping("inventory/wareinfo")
+@RequiredArgsConstructor
 public class WareInfoController {
-    @Autowired
-    private WareInfoService wareInfoService;
+
+    private final WareInfoService wareInfoService;
 
     /**
      * 列表

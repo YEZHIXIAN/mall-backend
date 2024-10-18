@@ -34,4 +34,19 @@ public class ProductAttrValueServiceImpl extends ServiceImpl<ProductAttrValueDao
         this.saveBatch(collect);
     }
 
+    @Override
+    public List<ProductAttrValueEntity> baseAttrlistforspu(Long spuId) {
+        return this.list(new QueryWrapper<ProductAttrValueEntity>().eq("spu_id", spuId));
+    }
+
+    @Transactional
+    @Override
+    public void updateSpuAttr(Long spuId, List<ProductAttrValueEntity> entities) {
+        // 1. 删除spuId之前对应的所有属性
+        this.remove(new QueryWrapper<ProductAttrValueEntity>().eq("spu_id", spuId));
+
+        entities.forEach(entity -> entity.setSpuId(spuId));
+        this.saveBatch(entities);
+    }
+
 }

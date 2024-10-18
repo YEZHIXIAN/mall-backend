@@ -1,22 +1,20 @@
 package com.zhixian.mall.product.service.impl;
 
-import com.zhixian.mall.product.service.CategoryBrandRelationService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.*;
-import java.util.stream.Collectors;
-
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zhixian.mall.common.utils.PageUtils;
 import com.zhixian.mall.common.utils.Query;
-
 import com.zhixian.mall.product.dao.CategoryDao;
 import com.zhixian.mall.product.entity.CategoryEntity;
+import com.zhixian.mall.product.service.CategoryBrandRelationService;
 import com.zhixian.mall.product.service.CategoryService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Service("categoryService")
@@ -29,7 +27,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     public PageUtils queryPage(Map<String, Object> params) {
         IPage<CategoryEntity> page = this.page(
                 new Query<CategoryEntity>().getPage(params),
-                new QueryWrapper<CategoryEntity>()
+                new QueryWrapper<>()
         );
 
         return new PageUtils(page);
@@ -50,7 +48,6 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Override
     public void removeCategoryByIds(List<Long> list) {
-        // TODO check whether the to be deleted categories are used elsewhere
         baseMapper.deleteBatchIds(list);
     }
 

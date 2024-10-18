@@ -11,6 +11,13 @@ spring:
   cloud:
     gateway:
       routes:
+        - id: inventory
+          uri: lb://inventory
+          predicates:
+            - Path=/ware/**
+          filters:
+            - RewritePath=/ware/(?<remaining>.*), /inventory/${remaining}
+
         - id: user
           uri: lb://user
           predicates:
@@ -43,12 +50,3 @@ spring:
         enabled: true
         profile-separator: '-'
         format: yaml
-
-management:
-  endpoints:
-    web:
-      exposure:
-        include: health
-  endpoint:
-    health:
-      show-details: always
