@@ -1,0 +1,31 @@
+server:
+  port: 9200
+
+spring:
+  application:
+    name: search
+  profiles:
+    active: dev
+  config:
+    import:
+      - 'consul:'
+      - 'optional:classpath:application-shared.yml'
+  cloud:
+    consul:
+      host: ${VM.host}
+      port: 8500
+      discovery:
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-interval: 10s
+      config:
+        enabled: true
+        profile-separator: '-'
+        format: yaml
+        default-context:
+          - global
+          - search
+        prefixes: config
+  elasticsearch:
+    connection-timeout: 1000
+    uris: "${VM.host}:9200"
