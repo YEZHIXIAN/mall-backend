@@ -45,7 +45,7 @@ public class CategoryBrandRelationController {
     /**
      * 当前品牌关联的所有分类
      */
-    @GetMapping("/catelog/list")
+    @GetMapping("/catalog/list")
     public R list(@RequestParam("brandId") Long brandId) {
         List<CategoryBrandRelationEntity> data = categoryBrandRelationService.list(
                 new QueryWrapper<CategoryBrandRelationEntity>().eq("brand_id", brandId)

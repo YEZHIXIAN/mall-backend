@@ -43,7 +43,7 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
     }
 
     @Override
-    public PageUtils queryPage(Map<String, Object> params, Long catelogId) {
+    public PageUtils queryPage(Map<String, Object> params, Long catalogId) {
         IPage<AttrGroupEntity> page;
 
         String key = (String) params.get("key");
@@ -52,8 +52,8 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
             wrapper.and(obj -> obj.eq("attr_id", key).or().like("attr_name", key));
         }
 
-        if (catelogId != 0) {
-            wrapper.eq("catelog_id", catelogId);
+        if (catalogId != 0) {
+            wrapper.eq("catalog_id", catalogId);
         }
         page = this.page(
                 new Query<AttrGroupEntity>().getPage(params),
@@ -65,13 +65,13 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
     /**
      * Retrieves a list of attribute groups along with their attributes for a given catalog ID.
      *
-     * @param catelogId the ID of the catalog for which the attribute groups and their attributes are to be retrieved
+     * @param catalogId the ID of the catalog for which the attribute groups and their attributes are to be retrieved
      * @return a list of attribute groups with their associated attributes for the specified catalog ID
      */
     @Override
-    public List<AttrGroupWithAttrsVo> getAttrGroupWithAttrsByCatelogId(Long catelogId) {
+    public List<AttrGroupWithAttrsVo> getAttrGroupWithAttrsByCatalogId(Long catalogId) {
         List<AttrGroupEntity> attrGroups = this.list(
-                new QueryWrapper<AttrGroupEntity>().eq("catelog_id", catelogId)
+                new QueryWrapper<AttrGroupEntity>().eq("catalog_id", catalogId)
         );
 
         return attrGroups.stream().map((attrGroup) -> {

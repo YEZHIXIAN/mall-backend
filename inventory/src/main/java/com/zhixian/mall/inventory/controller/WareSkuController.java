@@ -1,19 +1,16 @@
 package com.zhixian.mall.inventory.controller;
 
-import java.util.Arrays;
-import java.util.Map;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.zhixian.mall.inventory.entity.WareSkuEntity;
-import com.zhixian.mall.inventory.service.WareSkuService;
 import com.zhixian.mall.common.utils.PageUtils;
 import com.zhixian.mall.common.utils.R;
+import com.zhixian.mall.common.vo.SkuHasStockVo;
+import com.zhixian.mall.inventory.entity.WareSkuEntity;
+import com.zhixian.mall.inventory.service.WareSkuService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 
 
@@ -27,8 +24,18 @@ import com.zhixian.mall.common.utils.R;
 @RestController
 @RequestMapping("inventory/waresku")
 public class WareSkuController {
+
     @Autowired
     private WareSkuService wareSkuService;
+
+    /**
+     * 上架商品
+     */
+    @PostMapping("/hasStock")
+    public R getSkusHasStock(@RequestBody List<Long> skuIds){
+        List<SkuHasStockVo> vos = wareSkuService.getSkusHasStock(skuIds);
+        return R.ok(vos);
+    }
 
     /**
      * 列表
@@ -39,7 +46,6 @@ public class WareSkuController {
 
         return R.ok().put("page", page);
     }
-
 
     /**
      * 信息

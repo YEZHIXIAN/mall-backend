@@ -74,7 +74,7 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
     }
 
     @Override
-    public PageUtils queryBaseAttrPage(Map<String, Object> params, Long catelogId, String type) {
+    public PageUtils queryBaseAttrPage(Map<String, Object> params, Long catalogId, String type) {
         QueryWrapper<AttrEntity> wrapper = new QueryWrapper<AttrEntity>()
                 .eq(
                         "attr_type",
@@ -82,13 +82,13 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
                                 ? ProductConstant.AttrEnum.ATTR_TYPE_BASE.getCode()
                                 : ProductConstant.AttrEnum.ATTR_TYPE_SALE.getCode());
 
-        if (catelogId != 0) {
-            wrapper.eq("catelog_id", catelogId);
+        if (catalogId != 0) {
+            wrapper.eq("catalog_id", catalogId);
         }
 
         String key = params.get("key") != null ? params.get("key").toString() : "";
         if (!key.isEmpty()) {
-            wrapper.and(obj -> obj.eq("catelog_id", key).or().like("attr_group_name", key));
+            wrapper.and(obj -> obj.eq("catalog_id", key).or().like("attr_group_name", key));
 
         }
         IPage<AttrEntity> page = this.page(
@@ -114,10 +114,10 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
                 }
             }
 
-            // Get catelog name.
-            CategoryEntity categoryEntity = categoryService.getById(attrEntity.getCatelogId());
+            // Get catalog name.
+            CategoryEntity categoryEntity = categoryService.getById(attrEntity.getCatalogId());
             if (categoryEntity != null) {
-                attrResponseVo.setCatelogName(categoryEntity.getName());
+                attrResponseVo.setCatalogName(categoryEntity.getName());
             }
             return attrResponseVo;
         }).collect(Collectors.toList());
@@ -149,13 +149,13 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
             }
         }
 
-        // 2. Get attr catelog information.
-        CategoryEntity categoryEntity = categoryService.getById(attrEntity.getCatelogId());
+        // 2. Get attr catalog information.
+        CategoryEntity categoryEntity = categoryService.getById(attrEntity.getCatalogId());
         List<Long> path = new ArrayList<>();
         if (categoryEntity != null) {
             categoryService.findParentPath(categoryEntity.getCatId(), path);
-            attrResponseVo.setCatelogName(categoryEntity.getName());
-            attrResponseVo.setCatelogPath(path.toArray(new Long[0]));
+            attrResponseVo.setCatalogName(categoryEntity.getName());
+            attrResponseVo.setCatalogPath(path.toArray(new Long[0]));
         }
 
         return attrResponseVo;
@@ -221,14 +221,14 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
     public PageUtils getNoRelationAttr(Long attrgroupId, Map<String, Object> params) {
         // 1. Get category to which the group belongs.
         AttrGroupEntity attrGroupEntity = attrGroupService.getById(attrgroupId);
-        Long catelogId = attrGroupEntity.getCatelogId();
+        Long catalogId = attrGroupEntity.getCatalogId();
 
         // 2. Get attributes that don't have relation.
 
         // 2.1. Get groups under the category.
         List<AttrGroupEntity> attrGroups = attrGroupService.list(
                 new QueryWrapper<AttrGroupEntity>()
-                        .eq("catelog_id", catelogId)
+                        .eq("catalog_id", catalogId)
         );
         List<Long> attrGroupIds = attrGroups
                 .stream()
@@ -251,7 +251,7 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
 
         QueryWrapper<AttrEntity> wrapper =
                 new QueryWrapper<AttrEntity>()
-                        .eq("catelog_id", catelogId)
+                        .eq("catalog_id", catalogId)
                         .eq("attr_type", ProductConstant.AttrEnum.ATTR_TYPE_BASE.getCode());
 
         if (!attrIds.isEmpty()) {

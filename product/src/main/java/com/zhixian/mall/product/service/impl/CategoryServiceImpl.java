@@ -66,13 +66,13 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     }
 
     /**
-     * 找到catelogId的完整路径
-     * @param catelogId
+     * 找到catalogId的完整路径
+     * @param catalogId
      * @return
      */
-    public Long[] findCatelogPath(Long catelogId) {
+    public Long[] findCatalogPath(Long catalogId) {
         List<Long> paths = new ArrayList<>();
-        findParentPath(catelogId, paths);
+        findParentPath(catalogId, paths);
         return paths.toArray(new Long[0]);
     }
 
@@ -83,8 +83,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         categoryBrandRelationService.updateCategory(category.getCatId(), category.getName());
     }
 
-    public void findParentPath(Long catelogId, List<Long> paths) {
-        CategoryEntity byId = this.getById(catelogId);
+    public void findParentPath(Long catalogId, List<Long> paths) {
+        CategoryEntity byId = this.getById(catalogId);
         paths.add(0, byId.getCatId());
         if (byId.getParentCid() != 0) {
             findParentPath(byId.getParentCid(), paths);

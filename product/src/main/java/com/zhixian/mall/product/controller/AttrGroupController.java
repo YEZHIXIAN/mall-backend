@@ -69,21 +69,21 @@ public class AttrGroupController {
     /**
      * Retrieves the attribute groups along with their attributes for a specified catalog ID.
      *
-     * @param catelogId The ID of the catalog to retrieve attribute groups and their attributes from.
+     * @param catalogId The ID of the catalog to retrieve attribute groups and their attributes from.
      * @return An instance of {@link R} containing the attribute groups and their attributes for the specified catalog ID.
      */
-    @GetMapping("/{catelogId}/withattr")
-    public R getAttrGroupWithAttrs(@PathVariable("catelogId") Long catelogId) {
-        List<AttrGroupWithAttrsVo> vos = attrGroupService.getAttrGroupWithAttrsByCatelogId(catelogId);
+    @GetMapping("/{catalogId}/withattr")
+    public R getAttrGroupWithAttrs(@PathVariable("catalogId") Long catalogId) {
+        List<AttrGroupWithAttrsVo> vos = attrGroupService.getAttrGroupWithAttrsByCatalogId(catalogId);
         return R.ok().put("data", vos);
     }
 
     /**
      * 列表
      */
-    @RequestMapping("/list/{catelogId}")
-    public R list(@RequestParam Map<String, Object> params, @PathVariable Long catelogId) {
-        PageUtils page = attrGroupService.queryPage(params, catelogId);
+    @RequestMapping("/list/{catalogId}")
+    public R list(@RequestParam Map<String, Object> params, @PathVariable Long catalogId) {
+        PageUtils page = attrGroupService.queryPage(params, catalogId);
 
         return R.ok().put("page", page);
     }
@@ -95,9 +95,9 @@ public class AttrGroupController {
     @RequestMapping("/info/{attrGroupId}")
     public R info(@PathVariable("attrGroupId") Long attrGroupId) {
         AttrGroupEntity attrGroup = attrGroupService.getById(attrGroupId);
-        Long catelogId = attrGroup.getCatelogId();
-        Long[] catelogPath = categoryService.findCatelogPath(catelogId);
-        attrGroup.setCatelogPath(catelogPath);
+        Long catalogId = attrGroup.getCatalogId();
+        Long[] catalogPath = categoryService.findCatalogPath(catalogId);
+        attrGroup.setCatalogPath(catalogPath);
         return R.ok().put("attrGroup", attrGroup);
     }
 

@@ -36,12 +36,12 @@ public class AttrGroupWithAttrsVo implements Serializable {
     /**
      * 所属分类id
      */
-    private Long catelogId;
+    private Long catalogId;
     /**
      * 所属分类id路径
      */
     @TableField(exist = false)
-    private Long[] catelogPath;
+    private Long[] catalogPath;
 
     /**
      * 所有属性

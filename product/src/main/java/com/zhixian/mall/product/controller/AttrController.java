@@ -57,16 +57,16 @@ public class AttrController {
      * Get a paginated list of attributes for a specific category and type.
      *
      * @param params the pagination and filter parameters
-     * @param catelogId the ID of the category
+     * @param catalogId the ID of the category
      * @param type the type of attributes
      * @return a response containing the paginated list of attributes
      */
-    @GetMapping("/{attrType}/list/{catelogId}")
+    @GetMapping("/{attrType}/list/{catalogId}")
     public R baseAttrList(
             @RequestParam Map<String, Object> params,
-            @PathVariable("catelogId") Long catelogId,
+            @PathVariable("catalogId") Long catalogId,
             @PathVariable("attrType") String type) {
-        PageUtils page = attrService.queryBaseAttrPage(params, catelogId, type);
+        PageUtils page = attrService.queryBaseAttrPage(params, catalogId, type);
         return R.ok().put("page", page);
     }
 

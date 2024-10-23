@@ -8,7 +8,7 @@ public class AttrResponseVo extends AttrVo {
   /**
    * 分类名称
    */
-  private String catelogName;
+  private String catalogName;
 
   /**
    * 分组名称
@@ -18,6 +18,6 @@ public class AttrResponseVo extends AttrVo {
   /**
    * 分类路径
    */
-  private Long[] catelogPath;
+  private Long[] catalogPath;
 
 }

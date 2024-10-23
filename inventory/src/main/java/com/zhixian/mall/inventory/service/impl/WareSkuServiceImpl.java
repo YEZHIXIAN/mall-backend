@@ -8,6 +8,7 @@ import com.mysql.cj.util.StringUtils;
 import com.zhixian.mall.common.utils.PageUtils;
 import com.zhixian.mall.common.utils.Query;
 import com.zhixian.mall.common.utils.R;
+import com.zhixian.mall.common.vo.SkuHasStockVo;
 import com.zhixian.mall.inventory.dao.WareSkuDao;
 import com.zhixian.mall.inventory.entity.WareSkuEntity;
 import com.zhixian.mall.inventory.feign.ProductFeignService;
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 
 @Service("wareSkuService")
@@ -92,6 +94,23 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
                             .setSql("stock = stock + " + skuNum)
             );
         }
+    }
+
+    @Override
+    public List<SkuHasStockVo> getSkusHasStock(List<Long> skuIds) {
+
+        return skuIds
+                .stream()
+                .map(skuId -> {
+                    SkuHasStockVo skuHasStockVo = new SkuHasStockVo();
+                    WareSkuEntity wareSku = this.getOne(
+                            new QueryWrapper<WareSkuEntity>()
+                                    .eq("sku_id", skuId)
+                    );
+                    skuHasStockVo.setSkuId(skuId);
+                    skuHasStockVo.setHasStock(wareSku != null && wareSku.getStock() > 0);
+                    return skuHasStockVo;
+                }).collect(Collectors.toList());
     }
 
 }
