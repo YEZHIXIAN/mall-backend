@@ -12,7 +12,7 @@ import java.util.Map;
 
 
 @Slf4j
-@RestControllerAdvice(basePackages = "com.zhixian.mall.product.controller")
+@RestControllerAdvice(basePackages = "com.zhixian.mall.product.app")
 public class MallExceptionControllerAdvice {
 
     @ExceptionHandler(value = MethodArgumentNotValidException.class)

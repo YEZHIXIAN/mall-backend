@@ -29,6 +29,20 @@
     </properties>
     <dependencies>
 
+        <!--thymeleaf-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+
+        <!-- For Maven projects -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-devtools</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+
         <!--spring boot web-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -49,6 +63,7 @@
             <version>8.0.17</version>
         </dependency>
 
+        <!--Spring Test Dependency-->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -56,7 +71,6 @@
             <scope>test</scope>
         </dependency>
 
-        <!-- Spring Test Dependency -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
