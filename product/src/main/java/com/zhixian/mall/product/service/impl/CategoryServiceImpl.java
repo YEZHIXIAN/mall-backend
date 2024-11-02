@@ -91,7 +91,8 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     @Override
     public Map<String, Object> getCatalogJson() {
 
-        return getLevel1Categories()
+        List<CategoryEntity> categoryEntities = this.list(null);
+        return getCategoriesByParentId(categoryEntities, 0L)
                 .stream()
                 .collect(Collectors.toMap(
                         k -> k.getCatId().toString(),
@@ -99,7 +100,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
                         // 存储二级分类Vo列表，其中每个二级分类Vo包含三级分类列表
                         v -> {
                             // 查询二级分类
-                            List<CategoryEntity> level2Categories = this.list(new QueryWrapper<CategoryEntity>().eq("parent_cid", v.getCatId()));
+                            List<CategoryEntity> level2Categories = getCategoriesByParentId(categoryEntities, v.getCatId());
                             if (level2Categories == null) {
                                 return new ArrayList<Catalog2Vo>();
                             } else {
@@ -120,7 +121,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
                                     );
 
                                     // 查询该二级分类下的三级分类
-                                    List<CategoryEntity> level3Categories = this.list(new QueryWrapper<CategoryEntity>().eq("parent_cid", level2.getCatId()));
+                                    List<CategoryEntity> level3Categories = getCategoriesByParentId(categoryEntities, level2.getCatId());
                                     if (level3Categories != null) {
 
                                         // 设置三级分类Vo参数
@@ -141,5 +142,12 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
                             }
                         })
                 );
+    }
+
+    private List<CategoryEntity> getCategoriesByParentId(List<CategoryEntity> categoryEntities, Long catId) {
+        return categoryEntities
+                .stream()
+                .filter(categoryEntity -> categoryEntity.getParentCid().equals(catId))
+                .collect(Collectors.toList());
     }
 }
