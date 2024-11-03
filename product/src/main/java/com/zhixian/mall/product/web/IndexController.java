@@ -2,6 +2,7 @@ package com.zhixian.mall.product.web;
 
 import com.zhixian.mall.product.entity.CategoryEntity;
 import com.zhixian.mall.product.service.CategoryService;
+import com.zhixian.mall.product.vo.Catalog2Vo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,7 +27,7 @@ public class IndexController {
 
     @ResponseBody
     @GetMapping("/index/catalog.json")
-    public Map<String, Object> getCatalogJson() {
+    public Map<String, List<Catalog2Vo>> getCatalogJson() {
 
         return categoryService.getCatalogJson();
     }
