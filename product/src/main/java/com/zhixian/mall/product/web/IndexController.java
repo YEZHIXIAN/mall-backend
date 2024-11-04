@@ -27,7 +27,7 @@ public class IndexController {
 
     @ResponseBody
     @GetMapping("/index/catalog.json")
-    public Map<String, List<Catalog2Vo>> getCatalogJson() {
+    public Map<String, List<Catalog2Vo>> getCatalogJson() throws InterruptedException {
 
         return categoryService.getCatalogJson();
     }

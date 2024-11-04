@@ -1,7 +1,9 @@
 package com.zhixian.mall.product.vo;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class AttrResponseVo extends AttrVo {
 

@@ -4,7 +4,6 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
 import com.zhixian.mall.common.utils.PageUtils;
 import com.zhixian.mall.common.utils.Query;
 import com.zhixian.mall.product.dao.CategoryDao;
@@ -12,16 +11,16 @@ import com.zhixian.mall.product.entity.CategoryEntity;
 import com.zhixian.mall.product.service.CategoryBrandRelationService;
 import com.zhixian.mall.product.service.CategoryService;
 import com.zhixian.mall.product.vo.Catalog2Vo;
-import org.apache.commons.lang.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.lang.reflect.Type;
 import java.util.*;
 import java.util.stream.Collectors;
-
 
 @Service("categoryService")
 public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity> implements CategoryService {
@@ -31,6 +30,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
 
     @Autowired
     StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    RedissonClient redissonClient;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -96,25 +98,39 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         }
     }
 
+    /**
+     * Get level 1 categories
+     * @return level 1 categories
+     */
+    @Cacheable(value = {"category"}, key = "#root.methodName")
     @Override
     public List<CategoryEntity> getLevel1Categories() {
         return this.list(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
     }
 
+    /**
+     * Get catalog JSON
+     * @return catalog JSON
+     * @throws InterruptedException exception
+     */
+    @Cacheable(value = {"category"}, key = "#root.methodName")
     @Override
-    public Map<String, List<Catalog2Vo>> getCatalogJson() {
+    public Map<String, List<Catalog2Vo>> getCatalogJson() throws InterruptedException {
 
         Gson gson = new Gson();
-        String catalogJSON = stringRedisTemplate.opsForValue().get("catalogJSON");
-        if (StringUtils.isNotBlank(catalogJSON)) {
-            Type type = new TypeToken<Map<String, List<Catalog2Vo>>>(){}.getType();
-            return gson.fromJson(catalogJSON, type);
+        RLock lock = redissonClient.getLock("catalogJson-lock");
+        lock.lock();
+
+        Map<String, List<Catalog2Vo>> cataLogMap;
+        try {
+            // 缓存中没有数据，查询数据库
+            List<CategoryEntity> allCategories = this.list(null);
+            cataLogMap = getCataLogMap(allCategories);
+        } finally {
+            // 释放锁
+            lock.unlock();
         }
 
-        List<CategoryEntity> allCategories = this.list(null);
-        Map<String, List<Catalog2Vo>> cataLogMap = getCataLogMap(allCategories);
-
-        stringRedisTemplate.opsForValue().set("catalogJSON", gson.toJson(cataLogMap));
         return cataLogMap;
     }
 
