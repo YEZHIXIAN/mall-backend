@@ -1,19 +1,21 @@
 package com.zhixian.mall.product.service.impl;
 
-import com.zhixian.mall.product.service.CategoryBrandRelationService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import java.util.Map;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.zhixian.mall.common.utils.PageUtils;
 import com.zhixian.mall.common.utils.Query;
-
 import com.zhixian.mall.product.dao.BrandDao;
 import com.zhixian.mall.product.entity.BrandEntity;
 import com.zhixian.mall.product.service.BrandService;
+import com.zhixian.mall.product.service.CategoryBrandRelationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.Map;
 
 
 @Service("brandService")
@@ -46,6 +48,13 @@ public class BrandServiceImpl extends ServiceImpl<BrandDao, BrandEntity> impleme
             // Update related tables
             categoryBrandRelationService.updateBrand(brand.getBrandId(), brand.getName());
         }
+    }
+
+    @Cacheable(value = "brand", key = "#root.methodName")
+    @Override
+    public List<BrandEntity> getBrandsByIds(List<Long> brandIds) {
+
+        return this.list(new QueryWrapper<BrandEntity>().in("brand_id", brandIds));
     }
 
 }

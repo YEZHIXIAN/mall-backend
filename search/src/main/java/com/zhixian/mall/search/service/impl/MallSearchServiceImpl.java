@@ -1,8 +1,13 @@
 package com.zhixian.mall.search.service.impl;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.zhixian.mall.common.utils.R;
 import com.zhixian.mall.search.constant.EsConstant;
+import com.zhixian.mall.search.feign.ProductFeignService;
 import com.zhixian.mall.search.model.EsSkuModel;
 import com.zhixian.mall.search.service.MallSearchService;
+import com.zhixian.mall.search.vo.AttrResponseVo;
+import com.zhixian.mall.search.vo.BrandVo;
 import com.zhixian.mall.search.vo.SearchParam;
 import com.zhixian.mall.search.vo.SearchResult;
 import org.apache.commons.lang.StringUtils;
@@ -31,6 +36,8 @@ import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -41,6 +48,9 @@ public class MallSearchServiceImpl implements MallSearchService {
 
     @Autowired
     private ElasticsearchRestTemplate template;
+
+    @Autowired
+    private ProductFeignService productFeignService;
 
     /**
      * 构建检索条件
@@ -112,6 +122,12 @@ public class MallSearchServiceImpl implements MallSearchService {
             fieldSort = SortBuilders.fieldSort(sortField).order(sortOrder);
         }
         return fieldSort;
+    }
+
+    private static String replaceQueryString(SearchParam param, String value, String key) {
+        String encode = URLEncoder.encode(value, StandardCharsets.UTF_8);
+        encode = encode.replace("+", "%20");
+        return param.get_queryString().replace("&" + key + "=" + encode, "");
     }
 
     @Override
@@ -247,15 +263,50 @@ public class MallSearchServiceImpl implements MallSearchService {
         result.setAttrs(attrVos);
 
         // 面包屑导航
-        List<SearchResult.NavVo> navVos = new ArrayList<>();
-        param.getAttrs().stream().map(
-                attr -> {
-                    SearchResult.NavVo navVo = new SearchResult.NavVo();
-                    String[] s = attr.split("_");
-                    navVo.setNavValue(s[1]);
-                    return navVo;
+        if (param.getAttrs() != null && !param.getAttrs().isEmpty()) {
+            List<SearchResult.NavVo> collect = param.getAttrs().stream().map(
+                    attr -> {
+                        SearchResult.NavVo navVo = new SearchResult.NavVo();
+                        String[] s = attr.split("_");
+                        navVo.setNavValue(s[1]);
+                        R r = productFeignService.attrInfo(Long.parseLong(s[0]));
+                        if (r.getCode() == 0) {
+                            AttrResponseVo data = r.getData("attr", new TypeReference<AttrResponseVo>() {
+                            });
+                            navVo.setNavName(data.getAttrName());
+                        } else {
+                            navVo.setNavName(s[0]);
+                        }
+                        String replace = replaceQueryString(param, attr, "attrs");
+                        navVo.setLink("http://search.mall.com/search.html?" + replace);
+                        return navVo;
+                    }
+            ).collect(Collectors.toList());
+
+
+            result.setNavs(collect);
+        }
+
+        // 品牌导航
+        if (param.getBrandId() != null && !param.getBrandId().isEmpty()) {
+            List<SearchResult.NavVo> navs = result.getNavs();
+            SearchResult.NavVo navVo = new SearchResult.NavVo();
+            navVo.setNavName("品牌");
+            R r = productFeignService.brandInfo(param.getBrandId());
+            if (r.getCode() == 0) {
+                List<BrandVo> brand = r.getData("brand", new TypeReference<>() {});
+                StringBuilder sb = new StringBuilder();
+                String replace = "";
+                for (BrandVo brandVo : brand) {
+                    sb.append(brandVo.getBrandName()).append(";");
+                    replace = replaceQueryString(param, brandVo.getBrandId() + "", "brandId");
                 }
-        ).collect(Collectors.toList());
+                navVo.setNavValue(sb.toString());
+                navVo.setLink("http://search.mall.com/search.html?" + replace);
+
+            }
+            navs.add(navVo);
+        }
 
         return result;
 

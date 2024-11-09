@@ -3,6 +3,7 @@ package com.zhixian.mall.search.vo;
 import com.zhixian.mall.search.model.EsSkuModel;
 import lombok.Data;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -33,7 +34,7 @@ public class SearchResult {
     private List<Integer> pageNavs;
 
     // 面包屑导航数据
-    private List<NavVo> navs;
+    private List<NavVo> navs = new ArrayList<>();
 
     @Data
     public static class NavVo {

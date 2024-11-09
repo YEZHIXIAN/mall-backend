@@ -8,7 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
-import java.util.ArrayList;
+import javax.servlet.http.HttpServletRequest;
 
 @Controller
 public class SearchController {
@@ -17,10 +17,10 @@ public class SearchController {
     MallSearchService mallSearchService;
 
     @GetMapping(value = {"/search.html","/"})
-    public String getSearchPage(SearchParam searchParam, Model model) {
+    public String getSearchPage(SearchParam searchParam, Model model, HttpServletRequest request) {
+        String queryString = request.getQueryString();
+        searchParam.set_queryString(queryString);
         SearchResult searchResult = mallSearchService.search(searchParam);
-        searchResult.setNavs(new ArrayList<>());
-        searchResult.setPageNavs(new ArrayList<>());
         model.addAttribute("result", searchResult);
         return "search";
     }
