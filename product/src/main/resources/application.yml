@@ -1,0 +1,35 @@
+server:
+  port: 13000
+
+spring:
+  thymeleaf:
+    cache: false
+  application:
+    name: product
+  profiles:
+    active: dev
+  datasource:
+    username: root
+    password: ${mysql.password}
+    url: ${mysql.url}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  config:
+    import:
+      - 'consul:'
+      - 'optional:classpath:application-shared.yml'
+  cloud:
+    consul:
+      host: ${VM.host}
+      port: 8500
+      discovery:
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-interval: 10s
+      config:
+        enabled: true
+        profile-separator: '-'
+        format: yaml
+        default-context:
+          - global
+          - product
+        prefixes: config

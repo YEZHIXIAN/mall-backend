@@ -1,0 +1,64 @@
+server:
+  port: 88
+
+spring:
+  config:
+    import:
+      - 'consul:'
+      - 'optional:classpath:application-shared.yml'
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      routes:
+        - id: mall-host-search
+          uri: lb://search
+          predicates:
+            - Host=search.mall.com
+            - Path=/**
+
+        - id: mall-host
+          uri: lb://product
+          predicates:
+            - Host=mall.com
+            - Path=/**
+
+        - id: inventory
+          uri: lb://inventory
+          predicates:
+            - Path=/ware/**
+          filters:
+            - RewritePath=/ware/(?<remaining>.*), /inventory/${remaining}
+
+        - id: user
+          uri: lb://user
+          predicates:
+            - Path=/member/**
+
+        - id: third-party
+          uri: lb://third-party
+          predicates:
+            - Path=/third-party/s3/**
+
+        - id: product
+          uri: lb://product
+          predicates:
+            - Path=/product/**
+
+        - id: admin
+          uri: lb://renren-fast
+          predicates:
+            - Path=/**
+          filters:
+            - RewritePath=/(?<segment>.*), /renren-fast/${segment}
+    consul:
+      host: ${VM.host}
+      port: 8500
+      discovery:
+        service-name: ${spring.application.name}
+        prefer-ip-address: true
+        health-check-interval: 10s
+      config:
+        enabled: true
+        profile-separator: '-'
+        format: yaml
