@@ -16,7 +16,7 @@ Mall is a comprehensive e-commerce platform developed using modern technologies.
 
 ### Backend
 - **Language**: Java
-- **Frameworks**: Spring Boot, Spring Cloud, MyBatis
+- **Frameworks**: Spring Boot, Spring Cloud, MyBatis, Maven
 - **Database**: MySQL
 - **Cache**: Redis
 - **Message Queue**: RabbitMQ
