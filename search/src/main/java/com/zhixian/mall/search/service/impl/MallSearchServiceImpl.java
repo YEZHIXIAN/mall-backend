@@ -133,8 +133,6 @@ public class MallSearchServiceImpl implements MallSearchService {
     @Override
     public SearchResult search(SearchParam param) {
 
-        SearchResult result = new SearchResult();
-
         NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder();
 
         // 构建检索条件
@@ -252,12 +250,14 @@ public class MallSearchServiceImpl implements MallSearchService {
         Terms attrIdTerms = attrAgg.getAggregations().get("attr_id_agg");
         for (Terms.Bucket bucket : attrIdTerms.getBuckets()) {
             SearchResult.AttrVo attrVo = new SearchResult.AttrVo();
-            attrVo.setAttrId(bucket.getKeyAsNumber().longValue());
+            long attrId = bucket.getKeyAsNumber().longValue();
+            attrVo.setAttrId(attrId);
             attrVo.setAttrName(((Terms) bucket.getAggregations().get("attr_name_agg")).getBuckets().get(0).getKeyAsString());
             List<String> attrValues = ((Terms) bucket.getAggregations().get("attr_value_agg")).getBuckets().stream()
                     .map(Terms.Bucket::getKeyAsString)
                     .collect(Collectors.toList());
             attrVo.setAttrValue(attrValues);
+            result.getAttrIds().add(attrId);
             attrVos.add(attrVo);
         }
         result.setAttrs(attrVos);

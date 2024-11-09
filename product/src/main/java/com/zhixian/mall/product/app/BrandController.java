@@ -31,7 +31,7 @@ public class BrandController {
     private BrandService brandService;
 
     @GetMapping("/infos")
-    public R info(@RequestParam("brandIds") List<Long> brandIds){
+    public R brandInfo(@RequestParam("brandId") List<Long> brandIds){
         List<BrandEntity> brandEntities = brandService.getBrandsByIds(brandIds);
         return R.ok().put("brand", brandEntities);
     }

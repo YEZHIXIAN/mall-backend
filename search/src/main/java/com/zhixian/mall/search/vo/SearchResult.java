@@ -36,6 +36,9 @@ public class SearchResult {
     // 面包屑导航数据
     private List<NavVo> navs = new ArrayList<>();
 
+    // 当前查询结果涉及到的所有属性
+    private List<Long> attrIds = new ArrayList<>();
+
     @Data
     public static class NavVo {
         private String navName;

@@ -14,6 +14,6 @@ public interface ProductFeignService {
     @GetMapping("/product/attr/info/{attrId}")
     R attrInfo(@PathVariable("attrId") Long attrId);
 
-    @GetMapping("/infos")
-    R brandInfo(@RequestParam("brandIds") List<Long> brandIds);
+    @GetMapping("/product/brand/infos")
+    R brandInfo(@RequestParam("brandId") List<Long> brandIds);
 }
