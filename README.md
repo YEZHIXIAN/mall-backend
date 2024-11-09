@@ -22,7 +22,7 @@ Mall is a comprehensive e-commerce platform developed using modern technologies.
 - **Message Queue**: RabbitMQ
 - **Search Engine**: Elasticsearch
 - **API Gateway**: Spring Cloud Gateway
-- **Distributed Configuration**: Nacos/Consul
+- **Distributed Configuration**: Consul
 
 ### Frontend
 - **Framework**: Vue.js
@@ -32,5 +32,4 @@ Mall is a comprehensive e-commerce platform developed using modern technologies.
 
 ### DevOps
 - **Containerization**: Docker
-- **CI/CD**: Jenkins/GitHub Actions
-- **Monitoring**: Prometheus + Grafana
+- **CI/CD**: GitHub Actions
