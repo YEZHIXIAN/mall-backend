@@ -14,7 +14,9 @@ import com.zhixian.mall.product.vo.Catalog2Vo;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -83,6 +85,11 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         return paths.toArray(new Long[0]);
     }
 
+
+    @Caching(evict = {
+            @CacheEvict(value = {"category"}, key = "'getLevel1Categories'"),
+            @CacheEvict(value = {"category"}, key = "'getCatalogJson'")
+    })
     @Transactional
     @Override
     public void updateCascade(CategoryEntity category) {
@@ -102,7 +109,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      * Get level 1 categories
      * @return level 1 categories
      */
-    @Cacheable(value = {"category"}, key = "#root.methodName")
+    @Cacheable(value = {"category"}, key = "#root.methodName", sync = true)
     @Override
     public List<CategoryEntity> getLevel1Categories() {
         return this.list(new QueryWrapper<CategoryEntity>().eq("parent_cid", 0));
@@ -113,7 +120,7 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
      * @return catalog JSON
      * @throws InterruptedException exception
      */
-    @Cacheable(value = {"category"}, key = "#root.methodName")
+    @Cacheable(value = {"category"}, key = "#root.methodName", sync = true)
     @Override
     public Map<String, List<Catalog2Vo>> getCatalogJson() throws InterruptedException {
 

@@ -11,11 +11,17 @@ spring:
   cloud:
     gateway:
       routes:
+        - id: mall-host-search
+          uri: lb://search
+          predicates:
+            - Host=search.mall.com
+            - Path=/**
+
         - id: mall-host
           uri: lb://product
           predicates:
-            - Host=**.mall.com
-            - Path=/
+            - Host=mall.com
+            - Path=/**
 
         - id: inventory
           uri: lb://inventory
