@@ -22,6 +22,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 
 @Service("skuInfoService")
@@ -82,8 +84,7 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
                 if (maxBigDecimal.compareTo(BigDecimal.ZERO) > 0) {
                     wrapper.le("price", max);
                 }
-            }
-            catch (Exception ignored) {
+            } catch (Exception ignored) {
 
             }
         }
@@ -97,28 +98,34 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
     }
 
     @Override
-    public SkuItemVo item(Long skuId) {
+    public SkuItemVo item(Long skuId) throws ExecutionException, InterruptedException {
 
         SkuItemVo skuItemVo = new SkuItemVo();
 
-        // 1. sku基本信息
-        SkuInfoEntity info = getById(skuId);
-        skuItemVo.setInfo(info);
-        Long catalogId = info.getCatalogId();
+        // 异步获取 SKU 基本信息
+        CompletableFuture<SkuInfoEntity> infoFuture =
+                CompletableFuture.supplyAsync(() -> this.getById(skuId));
 
-        // 2. sku图片信息
-        List<SkuImagesEntity> images = imagesService.getImagesBySkuId(skuId);
-        skuItemVo.setImages(images);
+        // 使用 infoFuture 结果获取 SKU 图片信息
+        CompletableFuture<List<SkuImagesEntity>> imagesFuture =
+                infoFuture.thenComposeAsync(info -> CompletableFuture.supplyAsync(() -> imagesService.getImagesBySkuId(info.getSkuId())));
 
-        // 3. spu信息介绍
-        Long spuId = info.getSpuId();
-        SpuInfoDescEntity spuInfoDescEntity = spuInfoDescService.getById(spuId);
-        skuItemVo.setDesc(spuInfoDescEntity);
+        // 使用 infoFuture 结果获取 SPU 信息
+        CompletableFuture<SpuInfoDescEntity> spuDescFuture =
+                infoFuture.thenComposeAsync(info -> CompletableFuture.supplyAsync(() -> spuInfoDescService.getById(info.getSpuId())));
 
-        // 4. spu属性
+        // 使用 infoFuture 结果获取 SPU 属性信息
+
         List<SkuItemVo.SkuItemSaleAttrVo> saleAttrVos = new ArrayList<>();
-        List<SkuItemVo.SpuItemAttrGroupVo> spuItemAttrGroupVos = attrGroupService.getAttrGroupWithAttrsBySpuId(spuId, saleAttrVos);
-        skuItemVo.setGroupAttrs(spuItemAttrGroupVos);
+        List<SkuItemVo.SpuItemAttrGroupVo> groupAttrs = attrGroupService.getAttrGroupWithAttrsBySpuId(infoFuture.get().getSpuId(), saleAttrVos);
+
+        // 等待所有依赖完成并组装结果
+        CompletableFuture.allOf(imagesFuture, spuDescFuture).join();
+
+        skuItemVo.setInfo(infoFuture.get());
+        skuItemVo.setImages(imagesFuture.get());
+        skuItemVo.setDesc(spuDescFuture.get());
+        skuItemVo.setGroupAttrs(groupAttrs);
         skuItemVo.setSaleAttr(saleAttrVos);
 
         return skuItemVo;

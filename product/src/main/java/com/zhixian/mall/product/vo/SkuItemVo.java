@@ -13,16 +13,22 @@ public class SkuItemVo {
 
     // sku基本信息
     SkuInfoEntity info;
+
     // sku图片信息
     List<SkuImagesEntity> images;
+
     // spu介绍
     SpuInfoDescEntity desc;
+
     // spu规格参数信息
     List<SpuItemAttrGroupVo> groupAttrs;
+
     // sku销售属性信息
     List<SkuItemSaleAttrVo> saleAttr;
+
     // 秒杀商品的优惠信息
     SeckillSkuVo seckillSkuVo;
+
     // 是否有库存
     private boolean hasStock = true;
 
