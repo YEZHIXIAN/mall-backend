@@ -14,6 +14,7 @@ import com.zhixian.mall.product.entity.AttrEntity;
 import com.zhixian.mall.product.entity.AttrGroupEntity;
 import com.zhixian.mall.product.service.AttrGroupService;
 import com.zhixian.mall.product.vo.AttrGroupWithAttrsVo;
+import com.zhixian.mall.product.vo.SkuItemVo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -93,6 +94,14 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
             vo.setAttrs(attrs);
             return vo;
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<SkuItemVo.SpuItemAttrGroupVo> getAttrGroupWithAttrsBySpuId(Long spuId) {
+        // 1. 查出当前spu对应的所有的属性分组信息
+
+
+        return List.of();
     }
 
 }

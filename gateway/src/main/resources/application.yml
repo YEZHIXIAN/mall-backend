@@ -15,13 +15,11 @@ spring:
           uri: lb://search
           predicates:
             - Host=search.mall.com
-            - Path=/**
 
-        - id: mall-host
+        - id: mall-host-product
           uri: lb://product
           predicates:
-            - Host=mall.com
-            - Path=/**
+            - Host=mall.com, item.mall.com
 
         - id: inventory
           uri: lb://inventory
