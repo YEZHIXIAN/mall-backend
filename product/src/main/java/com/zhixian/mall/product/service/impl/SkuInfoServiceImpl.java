@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -103,24 +104,24 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
         // 1. sku基本信息
         SkuInfoEntity info = getById(skuId);
         skuItemVo.setInfo(info);
+        Long catalogId = info.getCatalogId();
 
         // 2. sku图片信息
         List<SkuImagesEntity> images = imagesService.getImagesBySkuId(skuId);
         skuItemVo.setImages(images);
 
-        // 3. sku销售属性信息
-
-        // 4. spu介绍
+        // 3. spu信息介绍
         Long spuId = info.getSpuId();
         SpuInfoDescEntity spuInfoDescEntity = spuInfoDescService.getById(spuId);
         skuItemVo.setDesc(spuInfoDescEntity);
 
-        // 5. spu规格参数信息
-        List<SkuItemVo.SpuItemAttrGroupVo> spuItemAttrGroupVos = attrGroupService.getAttrGroupWithAttrsBySpuId(spuId);
+        // 4. spu属性
+        List<SkuItemVo.SkuItemSaleAttrVo> saleAttrVos = new ArrayList<>();
+        List<SkuItemVo.SpuItemAttrGroupVo> spuItemAttrGroupVos = attrGroupService.getAttrGroupWithAttrsBySpuId(spuId, saleAttrVos);
         skuItemVo.setGroupAttrs(spuItemAttrGroupVos);
+        skuItemVo.setSaleAttr(saleAttrVos);
 
-
-        return null;
+        return skuItemVo;
     }
 
 }

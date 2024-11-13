@@ -9,16 +9,19 @@ import com.zhixian.mall.common.utils.Query;
 import com.zhixian.mall.product.dao.AttrAttrgroupRelationDao;
 import com.zhixian.mall.product.dao.AttrDao;
 import com.zhixian.mall.product.dao.AttrGroupDao;
-import com.zhixian.mall.product.entity.AttrAttrgroupRelationEntity;
-import com.zhixian.mall.product.entity.AttrEntity;
-import com.zhixian.mall.product.entity.AttrGroupEntity;
+import com.zhixian.mall.product.dao.SkuSaleAttrValueDao;
+import com.zhixian.mall.product.entity.*;
+import com.zhixian.mall.product.service.AttrAttrgroupRelationService;
 import com.zhixian.mall.product.service.AttrGroupService;
+import com.zhixian.mall.product.service.ProductAttrValueService;
 import com.zhixian.mall.product.vo.AttrGroupWithAttrsVo;
 import com.zhixian.mall.product.vo.SkuItemVo;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,6 +35,18 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
 
     @Autowired
     private AttrDao attrDao;
+
+    @Autowired
+    private ProductAttrValueService productAttrValueService;
+
+    @Autowired
+    private AttrAttrgroupRelationService attrAttrgroupRelationService;
+
+    @Autowired
+    private AttrGroupDao attrGroupDao;
+
+    @Autowired
+    private SkuSaleAttrValueDao skuSaleAttrValueDao;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -97,11 +112,86 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
     }
 
     @Override
-    public List<SkuItemVo.SpuItemAttrGroupVo> getAttrGroupWithAttrsBySpuId(Long spuId) {
-        // 1. 查出当前spu对应的所有的属性分组信息
+    public List<SkuItemVo.SpuItemAttrGroupVo> getAttrGroupWithAttrsBySpuId(Long spuId, List<SkuItemVo.SkuItemSaleAttrVo> saleAttrVos) {
+        // 查询当前spu对应的所有属性
+        List<ProductAttrValueEntity> productAttrValueEntities = productAttrValueService.list(new QueryWrapper<ProductAttrValueEntity>().eq("spu_id", spuId));
 
+        Map<Long, Integer> attrGroupCount = new HashMap<>();
+        Map<Long, List<SkuItemVo.SpuBaseAttrVo>> attrGroupAttrsMap = new HashMap<>();
 
-        return List.of();
+        List<AttrGroupEntity> attrGroupEntities = new ArrayList<>(productAttrValueEntities.stream()
+                .map((productAttrValueEntity) -> {
+                    // 拿到属性id
+                    Long attrId = productAttrValueEntity.getAttrId();
+                    AttrEntity attrEntity = attrDao.selectById(attrId);
+
+                    // 查出每个属性所属的属性分组
+                    AttrAttrgroupRelationEntity relation = attrAttrgroupRelationService.getOne(new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_id", attrId));
+                    Long attrGroupId = relation.getAttrGroupId();
+                    if (attrGroupCount.containsKey(attrGroupId)) {
+                        attrGroupCount.put(attrGroupId, -1);
+                    } else {
+                        attrGroupCount.put(attrGroupId, 1);
+                    }
+
+                    // 若为基本属性，则添加到对应的属性分组下
+                    if (attrEntity.getAttrType() == 0) {
+                        SkuItemVo.SpuBaseAttrVo baseAttrVo = new SkuItemVo.SpuBaseAttrVo();
+                        baseAttrVo.setAttrName(attrEntity.getAttrName());
+                        baseAttrVo.setAttrValue(productAttrValueEntity.getAttrValue());
+                        if (attrGroupAttrsMap.containsKey(attrGroupId)) {
+                            attrGroupAttrsMap.get(attrGroupId).add(baseAttrVo);
+                        } else {
+                            attrGroupAttrsMap.put(attrGroupId, new ArrayList<>(List.of(baseAttrVo)));
+                        }
+                    }
+                    // 若为销售属性，则添加到销售属性列表中
+                    else {
+                        SkuItemVo.SkuItemSaleAttrVo saleAttrVo = new SkuItemVo.SkuItemSaleAttrVo();
+                        saleAttrVo.setAttrId(attrId);
+                        saleAttrVo.setAttrName(attrEntity.getAttrName());
+                        List<String> values = List.of(productAttrValueEntity.getAttrValue().split(";"));
+                        List<SkuItemVo.AttrValueWithSkuIdVo> collect = values.stream()
+                                .map(
+                                        (value) -> {
+                                            List<SkuSaleAttrValueEntity> attrValue = skuSaleAttrValueDao.selectList(new QueryWrapper<SkuSaleAttrValueEntity>().eq("attr_value", value));
+                                            StringBuilder skuIds = new StringBuilder();
+                                            for (SkuSaleAttrValueEntity skuSaleAttrValueEntity : attrValue) {
+                                                skuIds.append(skuSaleAttrValueEntity.getSkuId());
+                                            }
+                                            SkuItemVo.AttrValueWithSkuIdVo attrValueWithSkuIdVo = new SkuItemVo.AttrValueWithSkuIdVo();
+                                            attrValueWithSkuIdVo.setAttrValue(value);
+                                            attrValueWithSkuIdVo.setSkuIds(skuIds.toString());
+                                            return attrValueWithSkuIdVo;
+                                        }
+                                ).collect(Collectors.toList());
+                        saleAttrVo.setAttrValues(collect);
+                        saleAttrVos.add(saleAttrVo);
+                    }
+                    return attrGroupDao.selectById(attrGroupId);
+
+                })
+                .collect(Collectors.toMap(
+                        AttrGroupEntity::getAttrGroupId,
+                        entity -> entity,
+                        (oldValue, newValue) -> oldValue
+                ))
+                .values());
+
+        return attrGroupEntities.stream()
+                .map((attrGroupEntity -> {
+                    SkuItemVo.SpuItemAttrGroupVo attrGroupVo = new SkuItemVo.SpuItemAttrGroupVo();
+                    attrGroupVo.setGroupName(attrGroupEntity.getAttrGroupName());
+                    List<AttrAttrgroupRelationEntity> relations = attrAttrgroupRelationService.list(new QueryWrapper<AttrAttrgroupRelationEntity>().eq("attr_group_id", attrGroupEntity.getAttrGroupId()));
+
+                    // 设置当前属性分组下的所有基本属性
+                    List<SkuItemVo.SpuBaseAttrVo> spuBaseAttrVos = attrGroupAttrsMap.get(attrGroupEntity.getAttrGroupId());
+
+                    attrGroupVo.setAttrs(spuBaseAttrVos);
+                    attrGroupVo.setGroupName(attrGroupEntity.getAttrGroupName());
+
+                    return attrGroupVo;
+                })).collect(Collectors.toList());
     }
 
 }
