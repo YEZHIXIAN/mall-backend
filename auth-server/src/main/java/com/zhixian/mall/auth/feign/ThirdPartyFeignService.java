@@ -5,9 +5,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient("third-party")
-public interface thirdPartyFeignService {
+public interface ThirdPartyFeignService {
 
-    @PostMapping("/send")
+    @PostMapping("/sms/send")
     String sendSms(@RequestParam(required = false) String toPhoneNumber,
                    @RequestParam String message);
 }
