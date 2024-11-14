@@ -11,6 +11,11 @@ spring:
   cloud:
     gateway:
       routes:
+        - id: mall-host-auth
+          uri: lb://auth-server
+          predicates:
+            - Host=auth.mall.com
+
         - id: mall-host-search
           uri: lb://search
           predicates:
