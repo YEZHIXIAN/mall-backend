@@ -1,5 +1,4 @@
-VM:
-  host: ${VM_HOST}
+VM.host: 172.30.103.222
 
 mybatis-plus:
   mapper-locations: classpath:/mapper/**/*.xml
@@ -19,8 +18,6 @@ management:
       show-details: always
 
 spring:
-  profiles:
-    active: dev
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: America/Chicago

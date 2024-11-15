@@ -11,7 +11,10 @@ import com.zhixian.mall.common.utils.R;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -125,5 +128,13 @@ public class LoginController {
             redirectAttributes.addFlashAttribute("errors", errors);
             return "redirect:http://auth.mall.com/login.html";
         }
+    }
+
+    @GetMapping("/home")
+    public String home(Authentication authentication, Model model) {
+        OAuth2User user = (OAuth2User) authentication.getPrincipal();
+        model.addAttribute("name", user.getAttribute("name"));
+        model.addAttribute("email", user.getAttribute("email"));
+        return "redirect:http://mall.com";
     }
 }

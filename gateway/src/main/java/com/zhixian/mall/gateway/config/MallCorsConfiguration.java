@@ -16,6 +16,7 @@ public class MallCorsConfiguration {
 
         // 1. Config cors
         corsConfiguration.addAllowedOrigin("http://localhost:8001");
+        corsConfiguration.addAllowedOrigin("https://accounts.google.com");
         corsConfiguration.addAllowedHeader("*");
         corsConfiguration.addAllowedMethod("*");
         corsConfiguration.setAllowCredentials(true);
