@@ -28,3 +28,14 @@ spring:
           - global
           - auth-server
         prefixes: config
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            redirect-uri: "https://auth.mall.com/login/oauth2/code/google"
+            scope:
+              - profile
+              - email

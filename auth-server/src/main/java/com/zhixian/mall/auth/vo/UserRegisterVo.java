@@ -7,11 +7,11 @@ import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Pattern;
 
 @Data
-public class UserRegistVo {
+public class UserRegisterVo {
 
     @NotEmpty(message = "用户名必须提交")
     @Length(min = 6,max = 18,message = "用户名长度必须是6-18位")
-    private String username;
+    private String userName;
 
     @NotEmpty(message = "密码必须提交")
     @Length(min = 6,max = 18,message = "密码长度必须是6-18位")
