@@ -3,6 +3,7 @@ package com.zhixian.mall.auth.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
@@ -20,7 +21,10 @@ public class SecurityConfig {
                         .defaultSuccessUrl("/home", true) // 登录成功后跳转
                         .failureUrl("/login.html?error=true") // 登录失败后跳转
                 )
-                .csrf().disable(); // 可选：禁用 CSRF 防护（适用于开发环境）
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)  // 确保每次请求都会创建 session
+                .and()
+                .csrf().disable();
         return http.build();
     }
 }

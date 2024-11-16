@@ -1,7 +1,13 @@
 server:
   port: 17000
 
+logging:
+  level:
+    org.springframework.security: DEBUG
+
 spring:
+  session:
+    store-type: redis
   thymeleaf:
     cache: false
   application:
@@ -37,11 +43,12 @@ spring:
             client-secret: ${GOOGLE_CLIENT_SECRET}
             redirect-uri: "https://auth.mall.com/login/oauth2/code/google"
             scope:
+              - openid
               - profile
               - email
         provider:
           google:
             authorization-uri: https://accounts.google.com/o/oauth2/auth
             token-uri: https://oauth2.googleapis.com/token
-            user-info-uri: https://www.googleapis.com/oauth2/v1/certs
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
             user-name-attribute: sub

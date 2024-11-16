@@ -12,6 +12,12 @@
 
     <dependencies>
 
+        <!--redis session-->
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
+        </dependency>
+
         <!--oauth2-->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -12,6 +12,7 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -131,7 +132,7 @@ public class LoginController {
     }
 
     @GetMapping("/home")
-    public String home(Authentication authentication, Model model) {
+    public String home(@AuthenticationPrincipal Authentication authentication, Model model) {
         OAuth2User user = (OAuth2User) authentication.getPrincipal();
         model.addAttribute("name", user.getAttribute("name"));
         model.addAttribute("email", user.getAttribute("email"));
