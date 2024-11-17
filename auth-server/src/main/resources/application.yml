@@ -1,13 +1,17 @@
 server:
+  servlet:
+    session:
+      cookie:
+        secure: true
+        same-site: none
   port: 17000
 
-logging:
-  level:
-    org.springframework.security: DEBUG
 
 spring:
   session:
     store-type: redis
+    redis:
+      flush-mode: on-save
   thymeleaf:
     cache: false
   application:
@@ -48,7 +52,7 @@ spring:
               - email
         provider:
           google:
-            authorization-uri: https://accounts.google.com/o/oauth2/auth
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
             token-uri: https://oauth2.googleapis.com/token
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
             user-name-attribute: sub

@@ -11,7 +11,6 @@ import com.zhixian.mall.common.utils.R;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
@@ -132,10 +131,12 @@ public class LoginController {
     }
 
     @GetMapping("/home")
-    public String home(@AuthenticationPrincipal Authentication authentication, Model model) {
-        OAuth2User user = (OAuth2User) authentication.getPrincipal();
-        model.addAttribute("name", user.getAttribute("name"));
-        model.addAttribute("email", user.getAttribute("email"));
-        return "redirect:http://mall.com";
+    public String home(@AuthenticationPrincipal OAuth2User user, Model model) {
+        if (user != null) {
+            model.addAttribute("name", user.getAttribute("name"));
+            model.addAttribute("email", user.getAttribute("email"));
+        }
+        return "http://mall.com/"; // Map to a view named "home.html"
     }
+
 }

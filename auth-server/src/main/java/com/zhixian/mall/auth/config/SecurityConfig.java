@@ -1,30 +1,25 @@
 package com.zhixian.mall.auth.config;
 
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 
 @Configuration
-public class SecurityConfig {
+public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    @Override
+    protected void configure(HttpSecurity http) throws Exception {
         http
-                .authorizeHttpRequests(authorize -> authorize
-                        // 放行所有请求，除了 Google 登录按钮触发的认证路径
-                        .antMatchers("/oauth2/authorization/google").authenticated()
-                        .anyRequest().permitAll() // 其他请求放行
-                )
-                .oauth2Login(oauth2 -> oauth2
-                        .defaultSuccessUrl("/home", true) // 登录成功后跳转
-                        .failureUrl("/login.html?error=true") // 登录失败后跳转
-                )
-                .sessionManagement()
-                .sessionCreationPolicy(SessionCreationPolicy.ALWAYS)  // 确保每次请求都会创建 session
+                .authorizeRequests()
+                .antMatchers("/**").permitAll() // Publicly accessible
+                .anyRequest().authenticated() // Secure other endpoints
                 .and()
-                .csrf().disable();
-        return http.build();
+                .anonymous()
+                .and()
+                .oauth2Login()
+                .defaultSuccessUrl("/home", true) // Redirect to /home after successful login
+                .and()
+                .csrf().disable(); // Optional: Disable CSRF if working with APIs
     }
+
 }
