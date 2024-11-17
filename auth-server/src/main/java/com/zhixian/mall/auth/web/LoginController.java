@@ -136,7 +136,7 @@ public class LoginController {
             model.addAttribute("name", user.getAttribute("name"));
             model.addAttribute("email", user.getAttribute("email"));
         }
-        return "http://mall.com/"; // Map to a view named "home.html"
+        return "redirect:http://mall.com/";
     }
 
 }
