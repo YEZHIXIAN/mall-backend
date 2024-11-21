@@ -1,17 +1,9 @@
 server:
-  servlet:
-    session:
-      cookie:
-        secure: true
-        same-site: none
   port: 17000
-
 
 spring:
   session:
     store-type: redis
-    redis:
-      flush-mode: on-save
   thymeleaf:
     cache: false
   application:

@@ -1,6 +1,7 @@
 package com.zhixian.mall.auth.web;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.google.gson.Gson;
 import com.zhixian.mall.auth.feign.MemberFeignService;
 import com.zhixian.mall.auth.feign.ThirdPartyFeignService;
 import com.zhixian.mall.auth.vo.UserLoginVo;
@@ -8,20 +9,16 @@ import com.zhixian.mall.auth.vo.UserRegisterVo;
 import com.zhixian.mall.common.constant.AuthServerConstant;
 import com.zhixian.mall.common.exception.BizCodeEnum;
 import com.zhixian.mall.common.utils.R;
+import com.zhixian.mall.common.vo.MemberResponseVo;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.HttpSession;
 import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
@@ -39,6 +36,15 @@ public class LoginController {
 
     @Autowired
     MemberFeignService memberFeignService;
+
+    @RequestMapping("/login.html")
+    public String loginPage(HttpSession session) {
+        if (session.getAttribute(AuthServerConstant.LOGIN_USER) != null) {
+            return "redirect:http://mall.com/";
+        }else {
+            return "login";
+        }
+    }
 
     @ResponseBody
     @GetMapping("/sms/sendcode")
@@ -116,10 +122,14 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public String login(UserLoginVo loginVo, RedirectAttributes redirectAttributes) {
+    public String login(UserLoginVo loginVo, RedirectAttributes redirectAttributes, HttpSession session) {
 
         R login = memberFeignService.login(loginVo);
         if (login.getCode() == 0) {
+            Gson gson = new Gson();
+            String memberEntity = gson.toJson(login.get("member"));
+            MemberResponseVo memberResponseVo = gson.fromJson(memberEntity, MemberResponseVo.class);
+            session.setAttribute(AuthServerConstant.LOGIN_USER, memberResponseVo);
             return "redirect:http://mall.com";
         }
         else {
@@ -129,14 +139,4 @@ public class LoginController {
             return "redirect:http://auth.mall.com/login.html";
         }
     }
-
-    @GetMapping("/home")
-    public String home(@AuthenticationPrincipal OAuth2User user, Model model) {
-        if (user != null) {
-            model.addAttribute("name", user.getAttribute("name"));
-            model.addAttribute("email", user.getAttribute("email"));
-        }
-        return "redirect:http://mall.com/";
-    }
-
 }
