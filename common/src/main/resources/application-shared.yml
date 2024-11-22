@@ -1,0 +1,26 @@
+VM.host: 172.30.103.222
+
+mybatis-plus:
+  mapper-locations: classpath:/mapper/**/*.xml
+  global-config:
+    db-config:
+      id-type: auto
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+
+spring:
+  session:
+    store-type: redis
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: America/Chicago
+  redis:
+    host: ${VM.host}
+    port: 6379

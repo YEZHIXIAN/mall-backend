@@ -37,5 +37,5 @@ build/
 **/.mvn
 
 *-dev.yml
-*-shared.yml
+client_secret*.json
 

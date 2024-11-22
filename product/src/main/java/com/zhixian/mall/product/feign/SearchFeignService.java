@@ -14,6 +14,6 @@ public interface SearchFeignService {
     /**
      * 上架商品
      */
-    @PostMapping("/search//product")
+    @PostMapping("/search/product")
     R productStatusUp(@RequestBody List<SkuModel> skuModelList);
 }

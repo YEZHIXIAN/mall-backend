@@ -11,17 +11,25 @@ spring:
   cloud:
     gateway:
       routes:
+        - id: mall-host-cart
+          uri: lb://cart
+          predicates:
+            - Host=cart.mall.com
+
+        - id: mall-host-auth
+          uri: lb://auth-server
+          predicates:
+            - Host=auth.mall.com
+
         - id: mall-host-search
           uri: lb://search
           predicates:
             - Host=search.mall.com
-            - Path=/**
 
-        - id: mall-host
+        - id: mall-host-product
           uri: lb://product
           predicates:
-            - Host=mall.com
-            - Path=/**
+            - Host=mall.com, item.mall.com
 
         - id: inventory
           uri: lb://inventory

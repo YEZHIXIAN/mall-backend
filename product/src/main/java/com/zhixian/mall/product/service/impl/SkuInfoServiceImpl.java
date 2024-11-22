@@ -7,16 +7,36 @@ import com.mysql.cj.util.StringUtils;
 import com.zhixian.mall.common.utils.PageUtils;
 import com.zhixian.mall.common.utils.Query;
 import com.zhixian.mall.product.dao.SkuInfoDao;
+import com.zhixian.mall.product.entity.SkuImagesEntity;
 import com.zhixian.mall.product.entity.SkuInfoEntity;
+import com.zhixian.mall.product.entity.SpuInfoDescEntity;
+import com.zhixian.mall.product.service.AttrGroupService;
+import com.zhixian.mall.product.service.SkuImagesService;
 import com.zhixian.mall.product.service.SkuInfoService;
+import com.zhixian.mall.product.service.SpuInfoDescService;
+import com.zhixian.mall.product.vo.SkuItemVo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 
 @Service("skuInfoService")
 public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> implements SkuInfoService {
+
+    @Autowired
+    private SkuImagesService imagesService;
+
+    @Autowired
+    private SpuInfoDescService spuInfoDescService;
+
+    @Autowired
+    private AttrGroupService attrGroupService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -64,8 +84,7 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
                 if (maxBigDecimal.compareTo(BigDecimal.ZERO) > 0) {
                     wrapper.le("price", max);
                 }
-            }
-            catch (Exception e) {
+            } catch (Exception ignored) {
 
             }
         }
@@ -76,6 +95,40 @@ public class SkuInfoServiceImpl extends ServiceImpl<SkuInfoDao, SkuInfoEntity> i
         );
 
         return new PageUtils(page);
+    }
+
+    @Override
+    public SkuItemVo item(Long skuId) throws ExecutionException, InterruptedException {
+
+        SkuItemVo skuItemVo = new SkuItemVo();
+
+        // 异步获取 SKU 基本信息
+        CompletableFuture<SkuInfoEntity> infoFuture =
+                CompletableFuture.supplyAsync(() -> this.getById(skuId));
+
+        // 使用 infoFuture 结果获取 SKU 图片信息
+        CompletableFuture<List<SkuImagesEntity>> imagesFuture =
+                infoFuture.thenComposeAsync(info -> CompletableFuture.supplyAsync(() -> imagesService.getImagesBySkuId(info.getSkuId())));
+
+        // 使用 infoFuture 结果获取 SPU 信息
+        CompletableFuture<SpuInfoDescEntity> spuDescFuture =
+                infoFuture.thenComposeAsync(info -> CompletableFuture.supplyAsync(() -> spuInfoDescService.getById(info.getSpuId())));
+
+        // 使用 infoFuture 结果获取 SPU 属性信息
+
+        List<SkuItemVo.SkuItemSaleAttrVo> saleAttrVos = new ArrayList<>();
+        List<SkuItemVo.SpuItemAttrGroupVo> groupAttrs = attrGroupService.getAttrGroupWithAttrsBySpuId(infoFuture.get().getSpuId(), saleAttrVos);
+
+        // 等待所有依赖完成并组装结果
+        CompletableFuture.allOf(imagesFuture, spuDescFuture).join();
+
+        skuItemVo.setInfo(infoFuture.get());
+        skuItemVo.setImages(imagesFuture.get());
+        skuItemVo.setDesc(spuDescFuture.get());
+        skuItemVo.setGroupAttrs(groupAttrs);
+        skuItemVo.setSaleAttr(saleAttrVos);
+
+        return skuItemVo;
     }
 
 }

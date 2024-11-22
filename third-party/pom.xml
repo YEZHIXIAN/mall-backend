@@ -25,6 +25,21 @@
         <java.version>11</java.version>
     </properties>
     <dependencies>
+
+        <!--AWS SES-->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>ses</artifactId>
+            <version>2.26.25</version>
+        </dependency>
+
+        <!--AWS SNS-->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sns</artifactId>
+            <version>2.26.25</version>
+        </dependency>
+
         <!-- AWS SDK for S3 -->
         <dependency>
             <groupId>com.amazonaws</groupId>
