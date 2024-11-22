@@ -1394,7 +1394,7 @@
 	});
 
 	$(".seckill").click(function () {
-		var isLogin = [[${se ssion.loginUser != null}]];     //true
+		var isLogin = [[${session.loginUser != null}]];     //true
 		if (isLogin) {
 			var killId = $(this).attr("sessionid") + "-" + $(this).attr("skuid");
 			var code = $(this).attr("code");
