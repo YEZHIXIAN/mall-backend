@@ -3,12 +3,13 @@ package com.zhixian.mall.cart.vo;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
 public class Cart {
 
-    private List<CartItem> items;
+    private List<CartItem> items = new ArrayList<>();
 
     private Integer countNum;
 

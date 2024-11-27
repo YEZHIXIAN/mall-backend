@@ -12,12 +12,6 @@
 
     <dependencies>
 
-        <!--spring session-->
-        <dependency>
-            <groupId>org.springframework.session</groupId>
-            <artifactId>spring-session-data-redis</artifactId>
-        </dependency>
-
         <!--Spring Cache-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
