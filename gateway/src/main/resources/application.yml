@@ -11,6 +11,11 @@ spring:
   cloud:
     gateway:
       routes:
+        - id: mall-host-order
+          uri: lb://order
+          predicates:
+            - Host=order.mall.com
+
         - id: mall-host-cart
           uri: lb://cart
           predicates:

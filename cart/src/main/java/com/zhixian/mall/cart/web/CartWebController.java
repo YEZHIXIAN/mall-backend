@@ -13,10 +13,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import javax.servlet.http.HttpSession;
 
 @Controller
-public class CartController {
+public class CartWebController {
 
     @Autowired
     private CartService cartService;
+
 
     /**
      *  删除购物车商品

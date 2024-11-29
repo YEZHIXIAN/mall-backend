@@ -20,10 +20,13 @@ public class Cart {
     private BigDecimal reduce = new BigDecimal("0.00");
 
     public Integer getCountNum() {
+        this.countNum = 0;
         if (this.items != null && !this.items.isEmpty()) {
-            this.countNum = this.items.stream().mapToInt(CartItem::getCount).sum();
-        } else {
-            this.countNum = 0;
+            for (CartItem item : this.items) {
+                if (item.getCheck()) {
+                    this.countNum += item.getCount();
+                }
+            }
         }
         return countNum;
     }

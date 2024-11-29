@@ -33,6 +33,7 @@ public class CartServiceImpl implements CartService {
     @Autowired
     private ProductFeignService productFeignService;
 
+
     /**
      * 添加商品到购物车
      *
@@ -131,14 +132,7 @@ public class CartServiceImpl implements CartService {
         Cart cart = new Cart();
 
         // 获取购物车商品
-        BoundHashOperations<String, Object, Object> cartOps = getCartOps();
-        List<Object> values = cartOps.values();
-        if (values != null && !values.isEmpty()) {
-            List<CartItem> cartItems = values.stream()
-                    .map(o -> new Gson().fromJson((String) o, CartItem.class))
-                    .collect(Collectors.toList());
-            cart.setItems(cartItems);
-        }
+        cart.setItems(getItems());
 
         // 如果用户已登录，将临时购物车数据合并到购物车中
         UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
@@ -160,6 +154,17 @@ public class CartServiceImpl implements CartService {
             redisTemplate.delete(cartKey);
         }
         return cart;
+    }
+
+    private List<CartItem> getItems() {
+        BoundHashOperations<String, Object, Object> cartOps = getCartOps();
+        List<Object> values = cartOps.values();
+        if (values != null && !values.isEmpty()) {
+            return values.stream()
+                    .map(o -> new Gson().fromJson((String) o, CartItem.class))
+                    .collect(Collectors.toList());
+        }
+        return null;
     }
 
     /**
@@ -196,5 +201,28 @@ public class CartServiceImpl implements CartService {
     public void deleteItem(Long skuId) {
         BoundHashOperations<String, Object, Object> cartOps = getCartOps();
         cartOps.delete(skuId.toString());
+    }
+
+    /**
+     * 获取用户购物车商品
+     * @return 购物车商品
+     */
+    @Override
+    public List<CartItem> getUserCartItems() {
+        UserInfoTo userInfoTo = CartInterceptor.threadLocal.get();
+        if (userInfoTo.getUserId() != null) {
+            List<CartItem> items = getItems();
+            if (items == null) {
+                return null;
+            }
+            return items.stream()
+                    .filter(CartItem::getCheck)
+                    .peek(item -> {
+                        // 设置sku的库存信息
+                        item.setPrice(productFeignService.getPrice(item.getSkuId()));
+                    })
+                    .collect(Collectors.toList());
+        }
+        return null;
     }
 }
