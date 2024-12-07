@@ -718,7 +718,7 @@
       function getFare(addrId) {
           // 给表单回填选择的地址
           $("#addrIdInput").val(addrId);
-          $.get("http://mall.com/api/ware/wareinfo/fare?addrId=" + addrId, function (data) {
+          $.get("http://mall.com/ware/wareinfo/fare?addrId=" + addrId, function (data) {
               // layer.msg(data.data + "元")
               $("#fareEle").text(data.data.fare)
 

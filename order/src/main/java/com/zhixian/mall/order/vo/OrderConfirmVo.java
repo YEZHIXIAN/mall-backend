@@ -4,10 +4,10 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 @Data
 public class OrderConfirmVo {
-
 
     // 收货地址列表
     List<MemberAddressVo> address;
@@ -26,6 +26,22 @@ public class OrderConfirmVo {
 
     // 防重令牌
     String orderToken;
+
+    // 是否有库存
+    Map<Long, Boolean> stocks;
+
+    // 重量
+    BigDecimal weight;
+
+    public Integer getCount() {
+        Integer count = 0;
+        if (items != null && !items.isEmpty()) {
+            for (OrderItemVo item : items) {
+                count += item.getCount();
+            }
+        }
+        return count;
+    }
 
     /**
      * 获取订单总额
