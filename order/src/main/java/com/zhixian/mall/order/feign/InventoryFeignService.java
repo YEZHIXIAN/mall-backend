@@ -1,6 +1,7 @@
 package com.zhixian.mall.order.feign;
 
 import com.zhixian.mall.common.utils.R;
+import com.zhixian.mall.order.vo.WareSkuLockVo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,4 +18,7 @@ public interface InventoryFeignService {
 
     @GetMapping("/fare")
     R getFare(@RequestParam("addrId") Long addrId);
+
+    @PostMapping("/inventory/waresku/lock/order")
+    R orderLockStock(@RequestBody WareSkuLockVo vo);
 }

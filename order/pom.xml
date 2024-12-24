@@ -30,6 +30,12 @@
 
     <dependencies>
 
+        <!--aop-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
         <!--redis session-->
         <dependency>
             <groupId>org.springframework.session</groupId>

@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 @Data
-public class OrderCreatTo {
+public class OrderCreateTo {
 
     private OrderEntity order;
 

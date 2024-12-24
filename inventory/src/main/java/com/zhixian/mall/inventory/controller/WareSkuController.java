@@ -5,6 +5,8 @@ import com.zhixian.mall.common.utils.R;
 import com.zhixian.mall.common.vo.SkuHasStockVo;
 import com.zhixian.mall.inventory.entity.WareSkuEntity;
 import com.zhixian.mall.inventory.service.WareSkuService;
+import com.zhixian.mall.inventory.vo.LockStockResult;
+import com.zhixian.mall.inventory.vo.WareSkuLockVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,6 +29,12 @@ public class WareSkuController {
 
     @Autowired
     private WareSkuService wareSkuService;
+
+    @PostMapping("/lock/order")
+    public R orderLockStock(@RequestBody WareSkuLockVo vo) {
+        List<LockStockResult> stockResults = wareSkuService.orderLockStock(vo);
+        return R.ok(stockResults);
+    }
 
     /**
      * 上架商品

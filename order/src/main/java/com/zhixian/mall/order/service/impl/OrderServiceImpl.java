@@ -20,8 +20,9 @@ import com.zhixian.mall.order.feign.InventoryFeignService;
 import com.zhixian.mall.order.feign.ProductFeignService;
 import com.zhixian.mall.order.feign.UserFeignService;
 import com.zhixian.mall.order.interceptor.LoginUserInterceptor;
+import com.zhixian.mall.order.service.OrderItemService;
 import com.zhixian.mall.order.service.OrderService;
-import com.zhixian.mall.order.to.OrderCreatTo;
+import com.zhixian.mall.order.to.OrderCreateTo;
 import com.zhixian.mall.order.vo.*;
 import com.zhixian.mall.order.web.SubmitOrderResponseVo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -58,6 +60,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     @Autowired
     ProductFeignService productFeignService;
+
+    @Autowired
+    OrderItemService orderItemService;
 
     ThreadLocal<OrderSubmitVo> submitVoThreadLocal = new ThreadLocal<>();
 
@@ -142,13 +147,34 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         }
         else {
             // 令牌验证成功
-            OrderCreatTo order = createOrder();
+            OrderCreateTo order = createOrder();
             BigDecimal payAmount = order.getOrder().getPayAmount();
             BigDecimal payPrice = orderSubmitVo.getPayPrice();
             if (Math.abs(payAmount.subtract(payPrice).doubleValue()) < 0.01) {
                 // 价格验证成功
-                responseVo.setCode(0);
-                responseVo.setOrder(order.getOrder());
+                this.saveOrder(order);
+                WareSkuLockVo lockVo = new WareSkuLockVo();
+                lockVo.setOrderSn(order.getOrder().getOrderSn());
+                List<OrderItemVo> orderItemVos = order.getOrderItems().stream().map(
+                        item -> {
+                            OrderItemVo itemVo = new OrderItemVo();
+                            itemVo.setSkuId(item.getSkuId());
+                            itemVo.setCount(item.getSkuQuantity());
+                            itemVo.setTitle(item.getSkuName());
+                            return itemVo;
+                        }
+                ).collect(Collectors.toList());
+                lockVo.setLocks(orderItemVos);
+                R r = inventoryFeignService.orderLockStock(lockVo);
+
+                if (r.getCode() == 0) {
+                    responseVo.setOrder(order.getOrder());
+                }
+                else {
+                    // 锁定库存失败
+                    responseVo.setCode(3);
+                }
+                return responseVo;
             }
             else {
                 // 价格验证失败
@@ -159,11 +185,28 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     }
 
     /**
+     * 保存订单所有数据
+     */
+    private void saveOrder(OrderCreateTo order) {
+        OrderEntity orderEntity = order.getOrder();
+        orderEntity.setModifyTime(new Date());
+        this.save(orderEntity);
+
+        List<OrderItemEntity> orderItems = order.getOrderItems();
+        orderItems = orderItems.stream().peek(item -> {
+            item.setOrderId(orderEntity.getId());
+            item.setSpuName(item.getSpuName());
+            item.setOrderSn(order.getOrder().getOrderSn());
+        }).collect(Collectors.toList());
+        orderItemService.saveBatch(orderItems);
+    }
+
+    /**
      * 创建订单
      * @return 订单
      */
-    private OrderCreatTo createOrder() {
-        OrderCreatTo orderCreatTo = new OrderCreatTo();
+    private OrderCreateTo createOrder() {
+        OrderCreateTo orderCreatTo = new OrderCreateTo();
 
         // 1. 生成订单号
         String orderSn = IdWorker.getTimeId();
@@ -315,6 +358,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
         return orderItemEntity;
     }
+
+
 
 
 }
