@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.zhixian.mall.common.enume.OrderStatusEnum;
+import com.zhixian.mall.common.to.mq.OrderTo;
 import com.zhixian.mall.common.utils.PageUtils;
 import com.zhixian.mall.common.utils.Query;
 import com.zhixian.mall.common.utils.R;
@@ -25,6 +26,8 @@ import com.zhixian.mall.order.service.OrderService;
 import com.zhixian.mall.order.to.OrderCreateTo;
 import com.zhixian.mall.order.vo.*;
 import com.zhixian.mall.order.web.SubmitOrderResponseVo;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -64,20 +67,21 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     @Autowired
     OrderItemService orderItemService;
 
+    @Autowired
+    RabbitTemplate rabbitTemplate;
+
     ThreadLocal<OrderSubmitVo> submitVoThreadLocal = new ThreadLocal<>();
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
-        IPage<OrderEntity> page = this.page(
-                new Query<OrderEntity>().getPage(params),
-                new QueryWrapper<OrderEntity>()
-        );
 
+        IPage<OrderEntity> page = this.page(new Query<OrderEntity>().getPage(params), new QueryWrapper<>());
         return new PageUtils(page);
     }
 
     @Override
     public OrderConfirmVo confirmOrder() {
+
         OrderConfirmVo confirmVo = new OrderConfirmVo();
         MemberResponseVo memberResponseVo = LoginUserInterceptor.loginUser.get();
         Long id = memberResponseVo.getId();
@@ -102,7 +106,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             List<OrderItemVo> items = confirmVo.getItems();
             List<Long> skuIds = items.stream().map(OrderItemVo::getSkuId).collect(Collectors.toList());
             R skusHasStock = inventoryFeignService.getSkusHasStock(skuIds);
-            List<SkuHasStockVo> stocks = skusHasStock.getData(new TypeReference<>() {});
+            List<SkuHasStockVo> stocks = skusHasStock.getData(new TypeReference<>() {
+            });
             if (stocks != null) {
                 Map<Long, Boolean> map = stocks.stream().collect(Collectors.toMap(SkuHasStockVo::getSkuId, SkuHasStockVo::getHasStock));
                 confirmVo.setStocks(map);
@@ -144,8 +149,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             // 令牌验证失败
             responseVo.setCode(1);
             return responseVo;
-        }
-        else {
+        } else {
             // 令牌验证成功
             OrderCreateTo order = createOrder();
             BigDecimal payAmount = order.getOrder().getPayAmount();
@@ -155,28 +159,30 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
                 this.saveOrder(order);
                 WareSkuLockVo lockVo = new WareSkuLockVo();
                 lockVo.setOrderSn(order.getOrder().getOrderSn());
-                List<OrderItemVo> orderItemVos = order.getOrderItems().stream().map(
-                        item -> {
-                            OrderItemVo itemVo = new OrderItemVo();
-                            itemVo.setSkuId(item.getSkuId());
-                            itemVo.setCount(item.getSkuQuantity());
-                            itemVo.setTitle(item.getSkuName());
-                            return itemVo;
-                        }
-                ).collect(Collectors.toList());
+                List<OrderItemVo> orderItemVos = order.getOrderItems().stream().map(item -> {
+                    OrderItemVo itemVo = new OrderItemVo();
+                    itemVo.setSkuId(item.getSkuId());
+                    itemVo.setCount(item.getSkuQuantity());
+                    itemVo.setTitle(item.getSkuName());
+                    return itemVo;
+                }).collect(Collectors.toList());
                 lockVo.setLocks(orderItemVos);
                 R r = inventoryFeignService.orderLockStock(lockVo);
 
                 if (r.getCode() == 0) {
+                    // 锁定库存成功
                     responseVo.setOrder(order.getOrder());
-                }
-                else {
+                    rabbitTemplate.convertAndSend(
+                            "order-event-exchange",
+                            "order.create.order",
+                            order.getOrder()
+                    );
+                } else {
                     // 锁定库存失败
                     responseVo.setCode(3);
                 }
                 return responseVo;
-            }
-            else {
+            } else {
                 // 价格验证失败
                 responseVo.setCode(2);
             }
@@ -184,10 +190,48 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return responseVo;
     }
 
+    @Override
+    public OrderEntity getOrderByOrderSn(String orderSn) {
+
+        return this.getOne(new QueryWrapper<OrderEntity>().eq("order_sn", orderSn));
+    }
+
+    /**
+     * 关闭订单
+     *
+     * @param orderEntity
+     */
+    @Override
+    public void closeOrder(OrderEntity orderEntity) {
+
+        Integer status = this.getById(orderEntity.getId()).getStatus();
+        if (status.equals(OrderStatusEnum.CREATE_NEW.getCode())) {
+            OrderEntity updateEntity = new OrderEntity();
+            updateEntity.setId(orderEntity.getId());
+            updateEntity.setStatus(OrderStatusEnum.CANCLED.getCode());
+            this.updateById(updateEntity);
+
+            OrderTo orderTo = new OrderTo();
+            BeanUtils.copyProperties(orderEntity, orderTo);
+            rabbitTemplate.convertAndSend(
+                    "order-event-exchange",
+                    "order.release.other",
+                    orderTo
+            );
+        }
+
+        rabbitTemplate.convertAndSend(
+                "order-event-exchange",
+                "order.release.order",
+                orderEntity
+        );
+    }
+
     /**
      * 保存订单所有数据
      */
     private void saveOrder(OrderCreateTo order) {
+
         OrderEntity orderEntity = order.getOrder();
         orderEntity.setModifyTime(new Date());
         this.save(orderEntity);
@@ -203,9 +247,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     /**
      * 创建订单
+     *
      * @return 订单
      */
     private OrderCreateTo createOrder() {
+
         OrderCreateTo orderCreatTo = new OrderCreateTo();
 
         // 1. 生成订单号
@@ -226,10 +272,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     /**
      * 计算价格
+     *
      * @param orderEntity 订单
-     * @param orderItems 订单项
+     * @param orderItems  订单项
      */
     private void computePrice(OrderEntity orderEntity, List<OrderItemEntity> orderItems) {
+
         BigDecimal total = new BigDecimal(0);
         BigDecimal promotion = new BigDecimal(0);
         BigDecimal integration = new BigDecimal(0);
@@ -259,6 +307,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     /**
      * 构建订单
+     *
      * @param orderSn 订单号
      * @return 订单
      */
@@ -269,7 +318,8 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         // 1. 获取收货地址
         OrderSubmitVo orderSubmitVo = submitVoThreadLocal.get();
         R fareRes = inventoryFeignService.getFare(orderSubmitVo.getAddrId());
-        FareVo fareResp = fareRes.getData(new TypeReference<>() {});
+        FareVo fareResp = fareRes.getData(new TypeReference<>() {
+        });
         BigDecimal fare = fareResp.getFare();
 
         // 2. 设置订单信息
@@ -294,31 +344,31 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     /**
      * 构建订单项
+     *
      * @return 订单项
      */
     public List<OrderItemEntity> buildOrderItems(String orderSn) {
+
         List<OrderItemVo> items = cartFeignService.getCurrentUserItems();
 
         if (items != null && !items.isEmpty()) {
-            return items.stream()
-                    .map(
-                            item -> {
-                                OrderItemEntity orderItemEntity = buildOrderItem(item);
-                                orderItemEntity.setOrderSn(orderSn);
-                                return orderItemEntity;
-                            }
-                    )
-                    .collect(Collectors.toList());
+            return items.stream().map(item -> {
+                OrderItemEntity orderItemEntity = buildOrderItem(item);
+                orderItemEntity.setOrderSn(orderSn);
+                return orderItemEntity;
+            }).collect(Collectors.toList());
         }
         return null;
     }
 
     /**
      * 构建订单项
+     *
      * @param orderItemVo 订单项
      * @return 订单项
      */
     private OrderItemEntity buildOrderItem(OrderItemVo orderItemVo) {
+
         OrderItemEntity orderItemEntity = new OrderItemEntity();
 
         // 1. 设置sku信息
@@ -336,19 +386,16 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
         // 3. 设置spu信息
         R spuInfoBySkuId = productFeignService.getSpuInfoBySkuId(orderItemVo.getSkuId());
-        SpuInfoVo spuInfo = spuInfoBySkuId.getData(new TypeReference<>() {});
+        SpuInfoVo spuInfo = spuInfoBySkuId.getData(new TypeReference<>() {
+        });
         orderItemEntity.setSpuId(spuInfo.getId());
         orderItemEntity.setSpuBrand(spuInfo.getBrandId().toString());
         orderItemEntity.setSpuName(spuInfo.getSpuName());
         orderItemEntity.setCategoryId(spuInfo.getCatalogId());
 
         // 4. 订单项价格信息
-        BigDecimal realAmount = orderItemEntity.getSkuPrice().multiply(
-                new BigDecimal(orderItemEntity.getSkuQuantity())
-        );
-        realAmount = realAmount.subtract(orderItemEntity.getCouponAmount())
-                .subtract(orderItemEntity.getPromotionAmount())
-                .subtract(orderItemEntity.getIntegrationAmount());
+        BigDecimal realAmount = orderItemEntity.getSkuPrice().multiply(new BigDecimal(orderItemEntity.getSkuQuantity()));
+        realAmount = realAmount.subtract(orderItemEntity.getCouponAmount()).subtract(orderItemEntity.getPromotionAmount()).subtract(orderItemEntity.getIntegrationAmount());
         orderItemEntity.setRealAmount(realAmount);
 
         orderItemEntity.setPromotionAmount(new BigDecimal(0));
@@ -358,8 +405,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
         return orderItemEntity;
     }
-
-
 
 
 }

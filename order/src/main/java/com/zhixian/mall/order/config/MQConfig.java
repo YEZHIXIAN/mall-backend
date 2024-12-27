@@ -1,26 +1,33 @@
 package com.zhixian.mall.order.config;
 
-import com.rabbitmq.client.Channel;
-import com.zhixian.mall.order.entity.OrderEntity;
-import org.springframework.amqp.core.*;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.Exchange;
+import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.core.TopicExchange;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
 import java.util.Map;
 
 @Configuration
 public class MQConfig {
+    
 
-    @RabbitListener(queues = "order.release.queue")
-    public void listener(OrderEntity orderEntity, Channel channel, Message message) throws IOException {
-        System.out.println("收到过期订单信息" + orderEntity);
-        channel.basicAck(message.getMessageProperties().getDeliveryTag(), false);
+    @Bean
+    public Binding orderReleaseOtherBinding() {
+
+        return new Binding(
+                "stock.release.queue",
+                Binding.DestinationType.QUEUE,
+                "order-event-exchange",
+                "order.release.other",
+                null
+        );
     }
 
     @Bean
     public Queue OrderDelayQueue() {
+
         return new Queue(
                 "order.delay.queue",
                 true,
@@ -36,6 +43,7 @@ public class MQConfig {
 
     @Bean
     public Queue OrderReleaseQueue() {
+
         return new Queue(
                 "order.release.queue",
                 true,
@@ -46,6 +54,7 @@ public class MQConfig {
 
     @Bean
     public Exchange OrderEventExchange() {
+
         return new TopicExchange(
                 "order-event-exchange",
                 true,
@@ -55,6 +64,7 @@ public class MQConfig {
 
     @Bean
     public Binding orderCreateBinding() {
+
         return new Binding(
                 "order.delay.queue",
                 Binding.DestinationType.QUEUE,
@@ -66,6 +76,7 @@ public class MQConfig {
 
     @Bean
     public Binding orderReleaseBinding() {
+
         return new Binding(
                 "order.release.queue",
                 Binding.DestinationType.QUEUE,
@@ -74,4 +85,5 @@ public class MQConfig {
                 null
         );
     }
+
 }

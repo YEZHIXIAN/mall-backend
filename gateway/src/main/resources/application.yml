@@ -36,6 +36,11 @@ spring:
           predicates:
             - Host=mall.com, item.mall.com
 
+        - id: coupon
+          uri: lb://coupon
+          predicates:
+            - Path=/coupon/**
+
         - id: inventory
           uri: lb://inventory
           predicates:

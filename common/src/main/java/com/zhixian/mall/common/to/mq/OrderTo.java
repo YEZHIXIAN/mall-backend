@@ -1,30 +1,16 @@
-package com.zhixian.mall.order.entity;
+package com.zhixian.mall.common.to.mq;
 
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.Date;
 
-/**
- * 订单
- *
- * @author zhixian
- * @email raininininin@gmail.com
- * @date 2024-09-23 10:37:06
- */
 @Data
-@TableName("oms_order")
-public class OrderEntity implements Serializable {
-
-    private static final long serialVersionUID = 1L;
+public class OrderTo {
 
     /**
      * id
      */
-    @TableId
     private Long id;
 
     /**

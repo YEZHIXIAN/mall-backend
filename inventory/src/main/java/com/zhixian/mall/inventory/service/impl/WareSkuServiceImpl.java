@@ -4,8 +4,10 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.mysql.cj.util.StringUtils;
 import com.zhixian.mall.common.exception.NoStockException;
+import com.zhixian.mall.common.to.mq.OrderTo;
 import com.zhixian.mall.common.to.mq.StockDetailTo;
 import com.zhixian.mall.common.to.mq.StockLockedTo;
 import com.zhixian.mall.common.utils.PageUtils;
@@ -16,14 +18,12 @@ import com.zhixian.mall.inventory.dao.WareSkuDao;
 import com.zhixian.mall.inventory.entity.WareOrderTaskDetailEntity;
 import com.zhixian.mall.inventory.entity.WareOrderTaskEntity;
 import com.zhixian.mall.inventory.entity.WareSkuEntity;
+import com.zhixian.mall.inventory.feign.OrderFeignService;
 import com.zhixian.mall.inventory.feign.ProductFeignService;
 import com.zhixian.mall.inventory.service.WareOrderTaskDetailService;
 import com.zhixian.mall.inventory.service.WareOrderTaskService;
 import com.zhixian.mall.inventory.service.WareSkuService;
-import com.zhixian.mall.inventory.vo.LockStockResult;
-import com.zhixian.mall.inventory.vo.OrderItemVo;
-import com.zhixian.mall.inventory.vo.SkuWareHasStock;
-import com.zhixian.mall.inventory.vo.WareSkuLockVo;
+import com.zhixian.mall.inventory.vo.*;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 
 @Service("wareSkuService")
 public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> implements WareSkuService {
@@ -49,6 +48,67 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
 
     @Autowired
     private ProductFeignService productFeignService;
+
+    @Autowired
+    private OrderFeignService orderFeignService;
+
+    @Override
+    public void unlockStock(StockLockedTo stockLockedTo) {
+
+        System.out.println("Stock release message received: " + stockLockedTo);
+        Long id = stockLockedTo.getId(); // di id
+        StockDetailTo detail = stockLockedTo.getDetail(); // 工作单详情
+        Long skuId = detail.getSkuId();
+        Long detailId = detail.getId();
+        WareOrderTaskDetailEntity wareOrderTaskDetail = wareOrderTaskDetailService.getById(detailId);
+        if (wareOrderTaskDetail != null) {
+            WareOrderTaskEntity wareOrderTaskEntity = wareOrderTaskService.getById(id);
+            String orderSn = wareOrderTaskEntity.getOrderSn();
+            R r = orderFeignService.getOrderStatus(orderSn);
+            if (r.getCode() == 0) {
+                OrderVo data = r.getData(new TypeReference<>() {
+                });
+                if (data == null || data.getStatus() == 4) {
+                    // 订单已取消
+                    // 解锁库存
+                    if (wareOrderTaskDetail.getLockStatus() == 1) {
+                        this.unlockStock(detail.getSkuId(), detail.getWareId(), detail.getSkuNum(), detailId);
+                    }
+                }
+            }
+        }
+    }
+
+    @Override
+    public void unlockStock(OrderTo orderTo) {
+
+        String orderSn = orderTo.getOrderSn();
+        WareOrderTaskEntity wareOrderTaskEntity = wareOrderTaskService.getOne(
+                new QueryWrapper<WareOrderTaskEntity>().eq("order_sn", orderSn)
+        );
+        Long id = wareOrderTaskEntity.getId();
+
+        List<WareOrderTaskDetailEntity> details = wareOrderTaskDetailService.list(
+                new QueryWrapper<WareOrderTaskDetailEntity>()
+                        .eq("task_id", id)
+                        .eq("lock_status", 1)
+        );
+
+        for (WareOrderTaskDetailEntity detail : details) {
+            this.unlockStock(detail.getSkuId(), detail.getWareId(), detail.getSkuNum(), detail.getId());
+        }
+    }
+
+    private void unlockStock(Long skuId, Long wareId, Integer skuNum, Long detailId) {
+
+        this.update(
+                new UpdateWrapper<WareSkuEntity>()
+                        .eq("sku_id", skuId)
+                        .eq("ware_id", wareId)
+                        .setSql("stock_locked = stock_locked - " + skuNum)
+
+        );
+    }
 
     @Transactional
     @Override
@@ -141,7 +201,7 @@ public class WareSkuServiceImpl extends ServiceImpl<WareSkuDao, WareSkuEntity> i
 
         // 3. 锁定库存
         for (SkuWareHasStock stock : skuWareHasStocks) {
-            Boolean skuStocked = false;
+            boolean skuStocked = false;
             Long skuId = stock.getSkuId();
             List<Long> wareIds = stock.getWareIds();
             if (wareIds == null || wareIds.isEmpty()) {

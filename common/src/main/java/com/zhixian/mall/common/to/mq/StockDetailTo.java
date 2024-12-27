@@ -1,5 +1,8 @@
 package com.zhixian.mall.common.to.mq;
 
+import lombok.Data;
+
+@Data
 public class StockDetailTo {
 
     /**
