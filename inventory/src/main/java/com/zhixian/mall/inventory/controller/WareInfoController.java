@@ -4,6 +4,7 @@ import com.zhixian.mall.common.utils.PageUtils;
 import com.zhixian.mall.common.utils.R;
 import com.zhixian.mall.inventory.entity.WareInfoEntity;
 import com.zhixian.mall.inventory.service.WareInfoService;
+import com.zhixian.mall.inventory.vo.FareVo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,6 +22,17 @@ import java.util.Map;
 public class WareInfoController {
 
     private final WareInfoService wareInfoService;
+
+    /**
+     *  获取运费
+     * @param addrId 地址id
+     * @return 运费
+     */
+    @GetMapping("/fare")
+    public R getFare(@RequestParam("addrId") Long addrId) {
+        FareVo fare = wareInfoService.getFare(addrId);
+        return R.ok(fare);
+    }
 
     /**
      * 列表

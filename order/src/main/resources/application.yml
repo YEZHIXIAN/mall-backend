@@ -2,6 +2,20 @@ server:
   port: 7000
 
 spring:
+  session:
+    store-type: redis
+  rabbitmq:
+    host: ${VM.host}
+    port: 5672
+    virtual-host: /
+    username: ${spring.rabbitmq.username}
+    password: ${spring.rabbitmq.password}
+    publisher-returns: true
+    template:
+      mandatory: true
+    listener:
+      simple:
+        acknowledge-mode: manual
   application:
     name: order
   profiles:

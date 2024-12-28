@@ -21,6 +21,7 @@
         <module>search</module>
         <module>auth-server</module>
         <module>cart</module>
+        <module>seckill</module>
     </modules>
 	<groupId>com.zhixian.mall</groupId>
 	<artifactId>mall</artifactId>

@@ -39,7 +39,7 @@ public class CartInterceptor implements HandlerInterceptor {
 
         // 如果用户已登录，将用户信息保存到UserInfoTo中
         if (member != null) {
-            userInfoTo.setUserId(member.getId());
+            userInfoTo.setUserId(String.valueOf(member.getId()));
         }
 
         // 如果用户未登录，从cookie中获取临时用户信息
@@ -77,7 +77,7 @@ public class CartInterceptor implements HandlerInterceptor {
     public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
 
 
-        if (threadLocal.get().isTempUser()) {
+        if (!threadLocal.get().isTempUser()) {
             Cookie cookie = new Cookie(CartConstant.TEMP_USER_COOKIE_NAME, threadLocal.get().getUserKey());
             cookie.setDomain("mall.com");
             cookie.setMaxAge(CartConstant.TEMP_USER_COOKIE_TIMEOUT);

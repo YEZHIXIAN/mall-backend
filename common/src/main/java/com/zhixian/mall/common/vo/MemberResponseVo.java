@@ -32,7 +32,7 @@ public class MemberResponseVo implements Serializable {
     /**
      * 手机号码
      */
-    private String mobile;
+    private String phone;
     /**
      * 邮箱
      */

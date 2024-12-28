@@ -3,12 +3,13 @@ package com.zhixian.mall.cart.vo;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
 public class Cart {
 
-    private List<CartItem> items;
+    private List<CartItem> items = new ArrayList<>();
 
     private Integer countNum;
 
@@ -19,10 +20,13 @@ public class Cart {
     private BigDecimal reduce = new BigDecimal("0.00");
 
     public Integer getCountNum() {
+        this.countNum = 0;
         if (this.items != null && !this.items.isEmpty()) {
-            this.countNum = this.items.stream().mapToInt(CartItem::getCount).sum();
-        } else {
-            this.countNum = 0;
+            for (CartItem item : this.items) {
+                if (item.getCheck()) {
+                    this.countNum += item.getCount();
+                }
+            }
         }
         return countNum;
     }

@@ -16,8 +16,6 @@ management:
       show-details: always
 
 spring:
-  session:
-    store-type: redis
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: America/Chicago

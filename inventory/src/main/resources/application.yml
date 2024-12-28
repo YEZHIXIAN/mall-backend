@@ -6,6 +6,18 @@ spring:
     name: inventory
   profiles:
     active: dev
+  rabbitmq:
+    host: ${VM.host}
+    port: 5672
+    virtual-host: /
+    username: ${spring.rabbitmq.username}
+    password: ${spring.rabbitmq.password}
+    publisher-returns: true
+    template:
+      mandatory: true
+    listener:
+      simple:
+        acknowledge-mode: manual
   datasource:
     username: root
     password: ${mysql.password}

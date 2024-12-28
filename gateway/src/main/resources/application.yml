@@ -11,6 +11,11 @@ spring:
   cloud:
     gateway:
       routes:
+        - id: mall-host-order
+          uri: lb://order
+          predicates:
+            - Host=order.mall.com
+
         - id: mall-host-cart
           uri: lb://cart
           predicates:
@@ -30,6 +35,11 @@ spring:
           uri: lb://product
           predicates:
             - Host=mall.com, item.mall.com
+
+        - id: coupon
+          uri: lb://coupon
+          predicates:
+            - Path=/coupon/**
 
         - id: inventory
           uri: lb://inventory
