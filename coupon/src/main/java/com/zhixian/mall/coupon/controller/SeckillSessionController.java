@@ -26,6 +26,10 @@ public class SeckillSessionController {
     @Autowired
     private SeckillSessionService seckillSessionService;
 
+    /**
+     * 获取最近三天的秒杀活动
+     */
+    @GetMapping("/latest3DaySession")
     public R getLatest3DaySession() {
         List<SeckillSessionEntity> seckillSessionEntities = seckillSessionService.getLatest3DaySession();
         return R.ok(seckillSessionEntities);
